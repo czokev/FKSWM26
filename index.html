@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frida tippt WM26</title>
+    <title>WM-Tippspiel der Schule</title>
     <style>
-        /* CSS für ein responsives (mobil-freundliches) Design */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f2f5;
             color: #333;
             margin: 0;
             padding: 15px;
+            padding-bottom: 80px; /* Platz für den fixierten Button unten */
         }
         .container {
             max-width: 600px;
@@ -23,7 +23,6 @@
         }
         h1, h2 { color: #004494; text-align: center; }
         
-        /* Formulare und Buttons für Touch-Bedienung optimiert */
         input[type="text"], input[type="password"], input[type="number"] {
             width: 100%;
             padding: 14px;
@@ -31,7 +30,7 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             box-sizing: border-box;
-            font-size: 16px; /* Verhindert Auto-Zoom auf iPhones */
+            font-size: 16px; 
         }
         button {
             width: 100%;
@@ -48,11 +47,9 @@
         button:hover { background-color: #003377; }
         button:disabled { background-color: #cccccc; cursor: not-allowed; }
         
-        /* Navigation und Struktur */
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .hidden { display: none !important; }
         
-        /* Karten für die einzelnen Spiele */
         .game-card {
             border: 1px solid #e1e4e8;
             padding: 15px;
@@ -66,14 +63,33 @@
         .score-input { flex: 1; display: flex; gap: 5px; justify-content: flex-end; }
         .score-input input { width: 50px; text-align: center; margin: 0; }
         
-        /* Tabelle für das Dashboard */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #f0f2f5; }
         
-        /* Systemmeldungen */
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; color: #d9534f; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
+
+        /* Design für den globalen Speichern-Button */
+        #floating-save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            box-sizing: border-box;
+            z-index: 1000;
+        }
+        #floating-save-bar button {
+            max-width: 600px;
+            margin: 0;
+            background-color: #28a745; /* Grün für positive Aktion */
+        }
+        #floating-save-bar button:hover { background-color: #218838; }
     </style>
 </head>
 <body>
@@ -82,20 +98,16 @@
     <h1>WM-Tippspiel</h1>
     <div id="message-box"></div>
 
-    <!-- ANSICHT 1: LOGIN -->
     <div id="login-view">
-        <p style="text-align: center;">Bitte logge dich ein oder wähle einen Namen und ein Passwort, um dich neu zu registrieren.</p>
+        <p style="text-align: center;">Bitte logge dich ein oder registriere dich neu.</p>
         <label for="username">Name (Schüler/Lehrer):</label>
         <input type="text" id="username" placeholder="Dein Name">
-        
         <label for="password">Passwort:</label>
         <input type="password" id="password" placeholder="Dein Passwort">
-        
-        <button onclick="login()">Anmelden / Registrieren</button>
-        <div id="login-loader" class="loader hidden">Verbindung zur Datenbank wird hergestellt...</div>
+        <button onclick="login()">Anmelden</button>
+        <div id="login-loader" class="loader hidden">Verbindung wird hergestellt...</div>
     </div>
 
-    <!-- ANSICHT 2: HAUPTBEREICH (nach dem Login) -->
     <div id="main-view" class="hidden">
         <div class="nav-buttons">
             <button onclick="showSection('tipps')">Tippabgabe</button>
@@ -108,6 +120,11 @@
         <div id="tipps-section">
             <h2>Spiele tippen</h2>
             <div id="games-container"></div>
+            
+            <!-- Neuer globaler Speichern-Button -->
+            <div id="floating-save-bar">
+                <button onclick="saveAllTipps()" id="btn-save-all">Alle Tipps speichern</button>
+            </div>
         </div>
 
         <!-- Sektion: Dashboard -->
@@ -121,9 +138,7 @@
                         <th>Punkte</th>
                     </tr>
                 </thead>
-                <tbody id="ranking-body">
-                    <!-- Wird durch JavaScript gefüllt -->
-                </tbody>
+                <tbody id="ranking-body"></tbody>
             </table>
         </div>
     </div>
@@ -131,13 +146,11 @@
 
 <script>
     // --- KONFIGURATION ---
-    // Ersetzen Sie diesen Text durch Ihre kopierte Web-App-URL aus dem Google Apps Script
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
 
     let currentUser = "";
     let currentPassword = "";
 
-    // --- FUNKTIONEN ---
     function showMessage(msg) {
         const box = document.getElementById('message-box');
         box.innerText = msg;
@@ -148,6 +161,7 @@
         document.getElementById('tipps-section').classList.add('hidden');
         document.getElementById('dashboard-section').classList.add('hidden');
         document.getElementById(sectionId + '-section').classList.remove('hidden');
+        
         if (sectionId === 'tipps' || sectionId === 'dashboard') {
             loadData();
         }
@@ -192,12 +206,14 @@
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'getData' })
+                // Wir senden nun den Namen mit, um die eigenen Tipps abzufragen
+                body: JSON.stringify({ action: 'getData', name: currentUser }) 
             });
             const result = await response.json();
 
             if (result.success) {
-                renderGames(result.spiele);
+                // Wir übergeben nun auch die bestehenden Tipps an die Rendering-Funktion
+                renderGames(result.spiele, result.userTipps);
                 renderRanking(result.ranking);
             } else {
                 showMessage("Fehler beim Laden der Daten.");
@@ -209,7 +225,7 @@
         }
     }
 
-    function renderGames(spiele) {
+    function renderGames(spiele, userTipps) {
         const container = document.getElementById('games-container');
         container.innerHTML = '';
 
@@ -223,23 +239,29 @@
                 zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) + ' Uhr';
             }
 
+            // Prüfen, ob für dieses Spiel schon ein Tipp vorliegt
+            let existingTipp = userTipps.find(t => t.spielId == spiel.id);
+            let valH = existingTipp ? existingTipp.tippH : '';
+            let valA = existingTipp ? existingTipp.tippA : '';
+
             const card = document.createElement('div');
             card.className = 'game-card';
+            
+            // Die Input-Felder werden nun mit value="${valH}" vorbefüllt
             card.innerHTML = `
                 <div class="game-header">${spiel.phase} - ${zeitString} ${isLocked ? '(Gesperrt)' : ''}</div>
                 <div class="team-row">
                     <div class="team-name">${spiel.heim}</div>
                     <div class="score-input">
-                        <input type="number" id="heim_${spiel.id}" min="0" ${isLocked ? 'disabled' : ''}>
+                        <input type="number" id="heim_${spiel.id}" min="0" value="${valH}" ${isLocked ? 'disabled' : ''}>
                     </div>
                 </div>
                 <div class="team-row">
                     <div class="team-name">${spiel.auswaerts}</div>
                     <div class="score-input">
-                        <input type="number" id="auswaerts_${spiel.id}" min="0" ${isLocked ? 'disabled' : ''}>
+                        <input type="number" id="auswaerts_${spiel.id}" min="0" value="${valA}" ${isLocked ? 'disabled' : ''}>
                     </div>
                 </div>
-                <button onclick="saveTipp('${spiel.id}')" ${isLocked ? 'disabled' : ''}>Tipp speichern</button>
             `;
             container.appendChild(card);
         });
@@ -249,7 +271,6 @@
         const tbody = document.getElementById('ranking-body');
         tbody.innerHTML = '';
         
-        // Sortieren nach Punkten absteigend
         ranking.sort((a, b) => b.punkte - a.punkte);
 
         ranking.forEach((user, index) => {
@@ -263,38 +284,60 @@
         });
     }
 
-    async function saveTipp(spielId) {
-        const tippH = document.getElementById('heim_' + spielId).value;
-        const tippA = document.getElementById('auswaerts_' + spielId).value;
+    // Neue Funktion, um alle Tipps gleichzeitig zu speichern
+    async function saveAllTipps() {
+        const btn = document.getElementById('btn-save-all');
+        btn.disabled = true;
+        btn.innerText = "Speichere...";
+        
+        // Wir suchen alle Eingabefelder für die Heimmannschaft
+        const heimInputs = document.querySelectorAll('input[id^="heim_"]');
+        let tippsToSave = [];
 
-        if (tippH === "" || tippA === "") {
-            showMessage("Bitte für beide Teams Tore eintragen.");
+        heimInputs.forEach(inputH => {
+            // Die Spiel-ID aus der ID des Input-Feldes extrahieren
+            const spielId = inputH.id.split('_')[1];
+            const inputA = document.getElementById('auswaerts_' + spielId);
+
+            // Wir erfassen den Tipp nur, wenn das Feld nicht gesperrt ist und Werte enthält
+            if (!inputH.disabled && inputH.value !== "" && inputA.value !== "") {
+                tippsToSave.push({
+                    spielId: spielId,
+                    tippH: inputH.value,
+                    tippA: inputA.value
+                });
+            }
+        });
+
+        if (tippsToSave.length === 0) {
+            showMessage("Keine neuen oder gültigen Tipps zum Speichern gefunden.");
+            btn.disabled = false;
+            btn.innerText = "Alle Tipps speichern";
             return;
         }
-
-        showMessage("Tipp wird gespeichert...");
 
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
                 body: JSON.stringify({ 
-                    action: 'saveTipp', 
+                    action: 'saveAllTipps', 
                     name: currentUser, 
                     password: currentPassword,
-                    spielId: spielId,
-                    tippH: tippH,
-                    tippA: tippA
+                    tipps: tippsToSave
                 })
             });
             const result = await response.json();
 
             if (result.success) {
-                showMessage("Tipp erfolgreich gespeichert!");
+                showMessage(result.message);
             } else {
                 showMessage("Fehler: " + result.error);
             }
         } catch (error) {
-            showMessage("Fehler beim Speichern.");
+            showMessage("Fehler beim Speichern der Daten.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Alle Tipps speichern";
         }
     }
 </script>
