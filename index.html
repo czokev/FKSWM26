@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frida tippt WM26</title>
+    <style>
+        /* CSS für ein responsives (mobil-freundliches) Design */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 15px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 { color: #004494; text-align: center; }
+        
+        /* Formulare und Buttons für Touch-Bedienung optimiert */
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px; /* Verhindert Auto-Zoom auf iPhones */
+        }
+        button {
+            width: 100%;
+            background-color: #004494;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        button:hover { background-color: #003377; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        
+        /* Navigation und Struktur */
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        
+        /* Karten für die einzelnen Spiele */
+        .game-card {
+            border: 1px solid #e1e4e8;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #fafbfc;
+        }
+        .game-header { font-size: 0.9em; color: #666; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .team-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .team-name { flex: 2; font-weight: bold; font-size: 1.1em; }
+        .score-input { flex: 1; display: flex; gap: 5px; justify-content: flex-end; }
+        .score-input input { width: 50px; text-align: center; margin: 0; }
+        
+        /* Tabelle für das Dashboard */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f0f2f5; }
+        
+        /* Systemmeldungen */
+        #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; color: #d9534f; }
+        .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WM-Tippspiel</h1>
+    <div id="message-box"></div>
+
+    <!-- ANSICHT 1: LOGIN -->
+    <div id="login-view">
+        <p style="text-align: center;">Bitte logge dich ein oder wähle einen Namen und ein Passwort, um dich neu zu registrieren.</p>
+        <label for="username">Name (Schüler/Lehrer):</label>
+        <input type="text" id="username" placeholder="Dein Name">
+        
+        <label for="password">Passwort:</label>
+        <input type="password" id="password" placeholder="Dein Passwort">
+        
+        <button onclick="login()">Anmelden / Registrieren</button>
+        <div id="login-loader" class="loader hidden">Verbindung zur Datenbank wird hergestellt...</div>
+    </div>
+
+    <!-- ANSICHT 2: HAUPTBEREICH (nach dem Login) -->
+    <div id="main-view" class="hidden">
+        <div class="nav-buttons">
+            <button onclick="showSection('tipps')">Tippabgabe</button>
+            <button onclick="showSection('dashboard')">Dashboard & Ranking</button>
+        </div>
+
+        <div id="data-loader" class="loader hidden">Daten werden geladen...</div>
+
+        <!-- Sektion: Tipps -->
+        <div id="tipps-section">
+            <h2>Spiele tippen</h2>
+            <div id="games-container"></div>
+        </div>
+
+        <!-- Sektion: Dashboard -->
+        <div id="dashboard-section" class="hidden">
+            <h2>Aktuelles Ranking</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Name</th>
+                        <th>Punkte</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-body">
+                    <!-- Wird durch JavaScript gefüllt -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- KONFIGURATION ---
+    // Ersetzen Sie diesen Text durch Ihre kopierte Web-App-URL aus dem Google Apps Script
+    const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
+
+    let currentUser = "";
+    let currentPassword = "";
+
+    // --- FUNKTIONEN ---
+    function showMessage(msg) {
+        const box = document.getElementById('message-box');
+        box.innerText = msg;
+        setTimeout(() => box.innerText = '', 5000);
+    }
+
+    function showSection(sectionId) {
+        document.getElementById('tipps-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById(sectionId + '-section').classList.remove('hidden');
+        if (sectionId === 'tipps' || sectionId === 'dashboard') {
+            loadData();
+        }
+    }
+
+    async function login() {
+        const nameInput = document.getElementById('username').value.trim();
+        const passInput = document.getElementById('password').value.trim();
+
+        if (!nameInput || !passInput) {
+            showMessage("Bitte Name und Passwort eingeben.");
+            return;
+        }
+
+        document.getElementById('login-loader').classList.remove('hidden');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'login', name: nameInput, password: passInput })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                currentUser = nameInput;
+                currentPassword = passInput;
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('main-view').classList.remove('hidden');
+                showSection('tipps');
+            } else {
+                showMessage(result.error);
+            }
+        } catch (error) {
+            showMessage("Fehler bei der Verbindung zum Server.");
+        } finally {
+            document.getElementById('login-loader').classList.add('hidden');
+        }
+    }
+
+    async function loadData() {
+        document.getElementById('data-loader').classList.remove('hidden');
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'getData' })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                renderGames(result.spiele);
+                renderRanking(result.ranking);
+            } else {
+                showMessage("Fehler beim Laden der Daten.");
+            }
+        } catch (error) {
+            showMessage("Fehler bei der Verbindung zum Server.");
+        } finally {
+            document.getElementById('data-loader').classList.add('hidden');
+        }
+    }
+
+    function renderGames(spiele) {
+        const container = document.getElementById('games-container');
+        container.innerHTML = '';
+
+        spiele.forEach(spiel => {
+            const isLocked = spiel.status === 'gesperrt';
+            
+            // Formatierung der Anstoßzeit
+            let zeitString = "Zeit unbekannt";
+            if(spiel.zeit) {
+                const d = new Date(spiel.zeit);
+                zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) + ' Uhr';
+            }
+
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <div class="game-header">${spiel.phase} - ${zeitString} ${isLocked ? '(Gesperrt)' : ''}</div>
+                <div class="team-row">
+                    <div class="team-name">${spiel.heim}</div>
+                    <div class="score-input">
+                        <input type="number" id="heim_${spiel.id}" min="0" ${isLocked ? 'disabled' : ''}>
+                    </div>
+                </div>
+                <div class="team-row">
+                    <div class="team-name">${spiel.auswaerts}</div>
+                    <div class="score-input">
+                        <input type="number" id="auswaerts_${spiel.id}" min="0" ${isLocked ? 'disabled' : ''}>
+                    </div>
+                </div>
+                <button onclick="saveTipp('${spiel.id}')" ${isLocked ? 'disabled' : ''}>Tipp speichern</button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderRanking(ranking) {
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+        
+        // Sortieren nach Punkten absteigend
+        ranking.sort((a, b) => b.punkte - a.punkte);
+
+        ranking.forEach((user, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${user.name}</td>
+                <td>${user.punkte}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function saveTipp(spielId) {
+        const tippH = document.getElementById('heim_' + spielId).value;
+        const tippA = document.getElementById('auswaerts_' + spielId).value;
+
+        if (tippH === "" || tippA === "") {
+            showMessage("Bitte für beide Teams Tore eintragen.");
+            return;
+        }
+
+        showMessage("Tipp wird gespeichert...");
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    action: 'saveTipp', 
+                    name: currentUser, 
+                    password: currentPassword,
+                    spielId: spielId,
+                    tippH: tippH,
+                    tippA: tippA
+                })
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                showMessage("Tipp erfolgreich gespeichert!");
+            } else {
+                showMessage("Fehler: " + result.error);
+            }
+        } catch (error) {
+            showMessage("Fehler beim Speichern.");
+        }
+    }
+</script>
+
+</body>
+</html>
