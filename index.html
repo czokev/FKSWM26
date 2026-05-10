@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frida_tippt_WM26</title>
+    <title>WM-Tippspiel der Schule</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,7 @@
             padding-bottom: 80px;
         }
         .container {
-            max-width: 700px; /* Leicht verbreitert für das nebeneinanderliegende Layout */
+            max-width: 700px; 
             margin: 0 auto;
             background: #ffffff;
             padding: 20px;
@@ -33,7 +33,6 @@
             font-size: 16px; 
         }
 
-        /* Entfernung der Pfeile in Nummernfeldern für alle Browser */
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -61,14 +60,27 @@
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .hidden { display: none !important; }
         
-        /* Kompakteres Design der Spielkarten */
         .game-card {
             border: 1px solid #e1e4e8;
-            padding: 10px 15px; /* Reduziertes Padding für schmalere Boxen */
+            padding: 10px 15px; 
             margin-bottom: 10px;
             border-radius: 6px;
             background: #fafbfc;
+            transition: all 0.3s ease; /* Weicher Übergang für optische Effekte */
         }
+        
+        /* NEU: Optische Hervorhebung (Ausgrauen) für gesperrte Spiele */
+        .game-card.locked-game {
+            background-color: #e9ecef; /* Dunkleres Grau als Hintergrund */
+            opacity: 0.65; /* Macht das Feld etwas transparent / blasser */
+            border: 1px dashed #ccc; /* Gestrichelter Rand statt durchgehend */
+        }
+        .game-card.locked-game input {
+            background-color: #f5f5f5; /* Macht die Eingabefelder selbst grau */
+            color: #777; /* Macht die getippten Zahlen blasser */
+            border-color: #ddd;
+        }
+
         .game-header { 
             font-size: 0.85em; 
             color: #666; 
@@ -78,7 +90,6 @@
             padding-bottom: 5px; 
         }
         
-        /* Neues, nebeneinanderliegendes Layout */
         .matchup-row { 
             display: flex; 
             justify-content: center; 
@@ -143,7 +154,7 @@
     <div id="message-box"></div>
 
     <div id="login-view">
-        <p style="text-align: center;">Bitte logge dich mit deinen Zugangsdaten ein!</p>
+        <p style="text-align: center;">Bitte logge dich mit den Zugangsdaten ein, die du von deiner Lehrkraft erhalten hast.</p>
         <label for="username">Name (Schüler/Lehrer):</label>
         <input type="text" id="username" placeholder="Dein Name">
         <label for="password">Passwort:</label>
@@ -187,7 +198,7 @@
 
 <script>
     // --- KONFIGURATION ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
+    const API_URL = "HIER_DIE_KOPIERTE_URL_EINTRAGEN";
 
     let currentUser = "";
     let currentPassword = "";
@@ -282,9 +293,10 @@
             let valA = existingTipp ? existingTipp.tippA : '';
 
             const card = document.createElement('div');
-            card.className = 'game-card';
             
-            // Anpassung an das einzeilige Flexbox-Layout
+            // NEU: Wenn das Spiel gesperrt ist, weisen wir ihm zusätzlich die neue CSS-Klasse zu
+            card.className = isLocked ? 'game-card locked-game' : 'game-card';
+            
             card.innerHTML = `
                 <div class="game-header">${spiel.phase} - ${zeitString} ${isLocked ? '(Gesperrt)' : ''}</div>
                 <div class="matchup-row">
