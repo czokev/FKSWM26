@@ -11,10 +11,10 @@
             color: #333;
             margin: 0;
             padding: 15px;
-            padding-bottom: 80px; /* Platz für den fixierten Button unten */
+            padding-bottom: 80px;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px; /* Leicht verbreitert für das nebeneinanderliegende Layout */
             margin: 0 auto;
             background: #ffffff;
             padding: 20px;
@@ -23,7 +23,7 @@
         }
         h1, h2 { color: #004494; text-align: center; }
         
-        input[type="text"], input[type="password"], input[type="number"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 14px;
             margin: 8px 0 16px 0;
@@ -32,6 +32,17 @@
             box-sizing: border-box;
             font-size: 16px; 
         }
+
+        /* Entfernung der Pfeile in Nummernfeldern für alle Browser */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
         button {
             width: 100%;
             background-color: #004494;
@@ -50,18 +61,52 @@
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .hidden { display: none !important; }
         
+        /* Kompakteres Design der Spielkarten */
         .game-card {
             border: 1px solid #e1e4e8;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
+            padding: 10px 15px; /* Reduziertes Padding für schmalere Boxen */
+            margin-bottom: 10px;
+            border-radius: 6px;
             background: #fafbfc;
         }
-        .game-header { font-size: 0.9em; color: #666; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        .team-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .team-name { flex: 2; font-weight: bold; font-size: 1.1em; }
-        .score-input { flex: 1; display: flex; gap: 5px; justify-content: flex-end; }
-        .score-input input { width: 50px; text-align: center; margin: 0; }
+        .game-header { 
+            font-size: 0.85em; 
+            color: #666; 
+            margin-bottom: 8px; 
+            text-align: center; 
+            border-bottom: 1px solid #eee; 
+            padding-bottom: 5px; 
+        }
+        
+        /* Neues, nebeneinanderliegendes Layout */
+        .matchup-row { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .team-name { 
+            flex: 1; 
+            font-weight: bold; 
+            font-size: 1em; 
+        }
+        .team-name.home { text-align: right; }
+        .team-name.away { text-align: left; }
+        
+        .score-inputs { 
+            display: flex; 
+            align-items: center; 
+            gap: 5px; 
+            font-weight: bold;
+        }
+        .score-inputs input { 
+            width: 45px; 
+            padding: 8px;
+            text-align: center; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -70,7 +115,6 @@
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; color: #d9534f; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
 
-        /* Design für den globalen Speichern-Button */
         #floating-save-bar {
             position: fixed;
             bottom: 0;
@@ -87,7 +131,7 @@
         #floating-save-bar button {
             max-width: 600px;
             margin: 0;
-            background-color: #28a745; /* Grün für positive Aktion */
+            background-color: #28a745;
         }
         #floating-save-bar button:hover { background-color: #218838; }
     </style>
@@ -116,18 +160,15 @@
 
         <div id="data-loader" class="loader hidden">Daten werden geladen...</div>
 
-        <!-- Sektion: Tipps -->
         <div id="tipps-section">
             <h2>Spiele tippen</h2>
             <div id="games-container"></div>
             
-            <!-- Neuer globaler Speichern-Button -->
             <div id="floating-save-bar">
                 <button onclick="saveAllTipps()" id="btn-save-all">Alle Tipps speichern</button>
             </div>
         </div>
 
-        <!-- Sektion: Dashboard -->
         <div id="dashboard-section" class="hidden">
             <h2>Aktuelles Ranking</h2>
             <table>
@@ -206,13 +247,11 @@
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                // Wir senden nun den Namen mit, um die eigenen Tipps abzufragen
                 body: JSON.stringify({ action: 'getData', name: currentUser }) 
             });
             const result = await response.json();
 
             if (result.success) {
-                // Wir übergeben nun auch die bestehenden Tipps an die Rendering-Funktion
                 renderGames(result.spiele, result.userTipps);
                 renderRanking(result.ranking);
             } else {
@@ -232,14 +271,12 @@
         spiele.forEach(spiel => {
             const isLocked = spiel.status === 'gesperrt';
             
-            // Formatierung der Anstoßzeit
             let zeitString = "Zeit unbekannt";
             if(spiel.zeit) {
                 const d = new Date(spiel.zeit);
                 zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) + ' Uhr';
             }
 
-            // Prüfen, ob für dieses Spiel schon ein Tipp vorliegt
             let existingTipp = userTipps.find(t => t.spielId == spiel.id);
             let valH = existingTipp ? existingTipp.tippH : '';
             let valA = existingTipp ? existingTipp.tippA : '';
@@ -247,20 +284,17 @@
             const card = document.createElement('div');
             card.className = 'game-card';
             
-            // Die Input-Felder werden nun mit value="${valH}" vorbefüllt
+            // Anpassung an das einzeilige Flexbox-Layout
             card.innerHTML = `
                 <div class="game-header">${spiel.phase} - ${zeitString} ${isLocked ? '(Gesperrt)' : ''}</div>
-                <div class="team-row">
-                    <div class="team-name">${spiel.heim}</div>
-                    <div class="score-input">
+                <div class="matchup-row">
+                    <div class="team-name home">${spiel.heim}</div>
+                    <div class="score-inputs">
                         <input type="number" id="heim_${spiel.id}" min="0" value="${valH}" ${isLocked ? 'disabled' : ''}>
-                    </div>
-                </div>
-                <div class="team-row">
-                    <div class="team-name">${spiel.auswaerts}</div>
-                    <div class="score-input">
+                        <span>:</span>
                         <input type="number" id="auswaerts_${spiel.id}" min="0" value="${valA}" ${isLocked ? 'disabled' : ''}>
                     </div>
+                    <div class="team-name away">${spiel.auswaerts}</div>
                 </div>
             `;
             container.appendChild(card);
@@ -284,22 +318,18 @@
         });
     }
 
-    // Neue Funktion, um alle Tipps gleichzeitig zu speichern
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true;
         btn.innerText = "Speichere...";
         
-        // Wir suchen alle Eingabefelder für die Heimmannschaft
         const heimInputs = document.querySelectorAll('input[id^="heim_"]');
         let tippsToSave = [];
 
         heimInputs.forEach(inputH => {
-            // Die Spiel-ID aus der ID des Input-Feldes extrahieren
             const spielId = inputH.id.split('_')[1];
             const inputA = document.getElementById('auswaerts_' + spielId);
 
-            // Wir erfassen den Tipp nur, wenn das Feld nicht gesperrt ist und Werte enthält
             if (!inputH.disabled && inputH.value !== "" && inputA.value !== "") {
                 tippsToSave.push({
                     spielId: spielId,
