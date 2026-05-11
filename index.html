@@ -5,299 +5,387 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frida_tippt_WM26</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            margin: 0;
-            padding: 15px;
-            padding-bottom: 80px;
-        }
-        .container {
-            max-width: 700px; 
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; }
+        .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h1, h2 { color: #004494; text-align: center; }
         
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 14px;
-            margin: 8px 0 16px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px; 
-        }
+        .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
+        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 20px; font-weight: bold; }
+        
+        .auth-wrapper { width: 240px; margin: 0 auto; text-align: left; }
+        .auth-wrapper label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.95em; }
+        .auth-wrapper input[type="text"], .auth-wrapper select { width: 100%; padding: 12px; margin: 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
 
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
 
-        button {
-            width: 100%;
-            background-color: #004494;
-            color: white;
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
+        .pin-container { display: flex; justify-content: space-between; margin-top: 5px; margin-bottom: 15px; gap: 13px; }
+        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; }
+        .pin-box:focus { border-color: #004494; outline: none; background-color: #fff; box-shadow: 0 0 5px rgba(0,68,148,0.3); }
+
+        button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; margin-top: 10px; }
         button:hover { background-color: #003377; }
         button:disabled { background-color: #cccccc; cursor: not-allowed; }
         
-        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .nav-buttons button { width: auto; padding: 10px 15px; margin-bottom: 0; flex: 1; min-width: 120px; }
+        
         .hidden { display: none !important; }
-        
-        .game-card {
-            border: 1px solid #e1e4e8;
-            padding: 10px 15px; 
-            margin-bottom: 10px;
-            border-radius: 6px;
-            background: #fafbfc;
-            transition: all 0.3s ease; /* Weicher Übergang für optische Effekte */
-        }
-        
-        /* NEU: Optische Hervorhebung (Ausgrauen) für gesperrte Spiele */
-        .game-card.locked-game {
-            background-color: #e9ecef; /* Dunkleres Grau als Hintergrund */
-            opacity: 0.65; /* Macht das Feld etwas transparent / blasser */
-            border: 1px dashed #ccc; /* Gestrichelter Rand statt durchgehend */
-        }
-        .game-card.locked-game input {
-            background-color: #f5f5f5; /* Macht die Eingabefelder selbst grau */
-            color: #777; /* Macht die getippten Zahlen blasser */
-            border-color: #ddd;
-        }
+        .toggle-link { text-align: center; color: #004494; text-decoration: underline; cursor: pointer; margin-top: 10px; display: block; }
 
-        .game-header { 
-            font-size: 0.85em; 
-            color: #666; 
-            margin-bottom: 8px; 
-            text-align: center; 
-            border-bottom: 1px solid #eee; 
-            padding-bottom: 5px; 
-        }
+        .summary-box { background-color: #d4edda; color: #155724; padding: 20px; border: 1px solid #c3e6cb; border-radius: 6px; text-align: center; margin-bottom: 20px; }
+        .summary-box h3 { margin-top: 0; }
+        .summary-box p { font-size: 1.1em; }
         
-        .matchup-row { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px; 
+        .game-card { border: 1px solid #e1e4e8; padding: 10px 15px; margin-bottom: 10px; border-radius: 6px; background: #fafbfc; transition: all 0.3s ease; position: relative; }
+        .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
+        .game-card.tipped-game input { background-color: #fff; border-color: #a5d6a7; }
+        .game-card.locked-game { background-color: #e9ecef; opacity: 0.65; border: 1px dashed #ccc; }
+        .game-card.locked-game input { background-color: #f5f5f5; color: #777; border-color: #ddd; }
+        
+        /* NEU: Spezielles Design für das Bonusfragen-Eingabefeld */
+        .bonus-input {
+            width: 90%;
+            padding: 16px;
+            font-size: 18px;
+            margin: 0 auto 15px auto;
+            display: block;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
         }
-        .team-name { 
-            flex: 1; 
-            font-weight: bold; 
-            font-size: 1em; 
-        }
+        .bonus-input:focus { border-color: #004494; outline: none; box-shadow: 0 0 5px rgba(0,68,148,0.3); }
+        .game-card.tipped-game .bonus-input { border-color: #a5d6a7; }
+        .game-card.locked-game .bonus-input { background-color: #f5f5f5; color: #777; border-color: #ddd; }
+
+        .points-badge { position: absolute; top: 10px; right: 10px; padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .points-badge.three { background-color: #28a745; color: white; } 
+        .points-badge.one { background-color: #ffc107; color: #333; } 
+        .points-badge.zero { background-color: #dc3545; color: white; } 
+
+        .real-result-banner { background-color: #004494; color: white; text-align: center; font-size: 0.9em; font-weight: bold; padding: 4px; margin-top: 10px; border-radius: 4px; }
+        .game-header { font-size: 0.85em; color: #666; margin-bottom: 8px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .matchup-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .team-name { flex: 1; font-weight: bold; font-size: 1em; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
-        
-        .score-inputs { 
-            display: flex; 
-            align-items: center; 
-            gap: 5px; 
-            font-weight: bold;
-        }
-        .score-inputs input { 
-            width: 45px; 
-            padding: 8px;
-            text-align: center; 
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
+        .score-inputs { display: flex; align-items: center; gap: 5px; font-weight: bold; }
+        .score-inputs input { width: 45px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #f0f2f5; }
         
+        tr.my-row td { background-color: #d4edda; font-weight: bold; color: #155724; border-bottom: 1px solid #c3e6cb;}
+        
+        .form-container { display: flex; gap: 3px; }
+        .form-circle { width: 20px; height: 20px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; color: white; background-color: #ccc; }
+        .form-circle.points-3 { background-color: #28a745; color: white; } 
+        .form-circle.points-1 { background-color: #ffc107; color: #333; } 
+        .form-circle.points-0 { background-color: #dc3545; color: white; } 
+
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; color: #d9534f; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
-
-        #floating-save-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            box-sizing: border-box;
-            z-index: 1000;
-        }
-        #floating-save-bar button {
-            max-width: 600px;
-            margin: 0;
-            background-color: #28a745;
-        }
-        #floating-save-bar button:hover { background-color: #218838; }
+        
+        #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; justify-content: center; box-sizing: border-box; z-index: 1000; }
+        #floating-save-bar button { max-width: 600px; margin: 0; background-color: #28a745; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>WM-Tippspiel</h1>
+    <img src="header.jpg" alt="WM-Tippspiel Header" class="header-image" onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block';">
+    <h1 id="fallback-title" style="display:none;">WM-Tippspiel</h1>
+
     <div id="message-box"></div>
 
     <div id="login-view">
-        <p style="text-align: center;">Bitte logge dich mit deinen Zugangsdaten ein!</p>
-        <label for="username">Name:</label>
-        <input type="text" id="username" placeholder="Dein Name">
-        <label for="password">Passwort:</label>
-        <input type="password" id="password" placeholder="Dein Passwort">
-        <button onclick="login()">Anmelden</button>
-        <div id="login-loader" class="loader hidden">Verbindung wird hergestellt...</div>
+        <h2>Anmeldung</h2>
+        <div class="auth-wrapper">
+            <label>Name:</label>
+            <input type="text" id="login-name" placeholder="Dein Name">
+            <label>PIN eingeben:</label>
+            <div class="pin-container" id="login-pin-container">
+                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+            </div>
+            <button onclick="login()">Einloggen</button>
+            <span class="toggle-link" onclick="toggleAuthView()">Noch kein Konto? Hier registrieren.</span>
+        </div>
     </div>
 
-    <div id="main-view" class="hidden">
-        <div class="nav-buttons">
-            <button onclick="showSection('tipps')">Tippabgabe</button>
-            <button onclick="showSection('dashboard')">Tabelle</button>
+    <div id="register-view" class="hidden">
+        <h2>Neu registrieren</h2>
+        <div class="auth-wrapper">
+            <label>Name:</label>
+            <input type="text" id="reg-name" placeholder="Dein Name">
+            <label>Klasse:</label>
+            <select id="reg-klasse">
+                <option value="Mitarbeiter*in">Mitarbeiter*in</option>
+                <option value="A1a">A1a</option>
+                <option value="A1b">A1b</option>
+                <option value="A2a">A2a</option>
+                <option value="A2b">A2b</option>
+                <option value="A3a">A3a</option>
+                <option value="A3b">A3b</option>
+            </select>
+            <label>PIN ausdenken (4 Zahlen):</label>
+            <div class="pin-container" id="reg-pin-container">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+            </div>
+            <button onclick="register()">Registrieren</button>
+            <span class="toggle-link" onclick="toggleAuthView()">Zurück zur Anmeldung.</span>
         </div>
+    </div>
 
+    <div id="summary-view" class="hidden">
+        <div class="summary-box">
+            <h3>Erfolgreich registriert!</h3>
+            <p>Bitte merke dir deine Daten für zukünftige Logins gut oder schreibe sie auf:</p>
+            <p><strong>Name:</strong> <span id="sum-name"></span><br>
+            <strong>PIN:</strong> <span id="sum-pin" style="letter-spacing: 2px; font-weight: bold;"></span></p>
+            <button onclick="proceedToMain()" style="margin-top: 15px;">Verstanden, weiter zum Tippspiel</button>
+        </div>
+    </div>
+
+    <div id="auth-loader" class="loader hidden">Verbindung wird hergestellt...</div>
+
+    <div id="main-view" class="hidden">
+        <div id="news-container" class="news-box hidden"></div>
+        
+        <div class="nav-buttons">
+            <button onclick="showSection('tipps')">Spiele tippen</button>
+            <button onclick="showSection('bonus')">Bonusfragen</button>
+            <button onclick="showSection('dashboard')">Dashboard & Ranking</button>
+        </div>
+        
         <div id="data-loader" class="loader hidden">Daten werden geladen...</div>
-
+        
         <div id="tipps-section">
             <h2>Spiele tippen</h2>
             <div id="games-container"></div>
-            
-            <div id="floating-save-bar">
-                <button onclick="saveAllTipps()" id="btn-save-all">Alle Tipps speichern</button>
-            </div>
+        </div>
+
+        <div id="bonus-section" class="hidden">
+            <h2>Bonusfragen</h2>
+            <p style="text-align: center; color: #666; font-size: 0.9em; margin-top: -10px; margin-bottom: 20px;">Trage hier deine Antworten ein (z.B. Land oder Spielername).</p>
+            <div id="bonus-container"></div>
         </div>
 
         <div id="dashboard-section" class="hidden">
-            <h2>Tabelle</h2>
+            <h2>Aktuelles Ranking</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Platz</th>
                         <th>Name</th>
+                        <th>Klasse</th>
+                        <th>Form</th> 
                         <th>Punkte</th>
                     </tr>
                 </thead>
                 <tbody id="ranking-body"></tbody>
             </table>
         </div>
+        
+        <div id="floating-save-bar" class="hidden">
+            <button id="btn-save-all" onclick="saveAllTipps()">Spiele-Tipps speichern</button>
+            <button id="btn-save-bonus" class="hidden" onclick="saveBonusTipps()">Bonusfragen speichern</button>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- KONFIGURATION ---
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
-
     let currentUser = "";
     let currentPassword = "";
 
-    function showMessage(msg) {
+    function handlePinInput(elem) {
+        elem.value = elem.value.replace(/[^0-9]/g, ''); 
+        if (elem.value.length >= 1) {
+            elem.value = elem.value.substring(0, 1);
+            let next = elem.nextElementSibling;
+            if (next && next.tagName === 'INPUT') { next.focus(); }
+        }
+    }
+
+    function handlePinBackspace(elem, event) {
+        if (event.key === "Backspace" && elem.value === "") {
+            let prev = elem.previousElementSibling;
+            if (prev && prev.tagName === 'INPUT') { prev.focus(); }
+        }
+    }
+
+    function getPinFromContainer(containerId) {
+        const container = document.getElementById(containerId);
+        const inputs = container.querySelectorAll('.pin-box');
+        let pin = "";
+        inputs.forEach(input => pin += input.value);
+        return pin;
+    }
+
+    function showMessage(msg, isSuccess = false) {
         const box = document.getElementById('message-box');
+        box.style.color = isSuccess ? '#28a745' : '#d9534f';
         box.innerText = msg;
-        setTimeout(() => box.innerText = '', 5000);
+        setTimeout(() => box.innerText = '', 6000);
+    }
+
+    function toggleAuthView() {
+        const login = document.getElementById('login-view');
+        const reg = document.getElementById('register-view');
+        if(login.classList.contains('hidden')) { login.classList.remove('hidden'); reg.classList.add('hidden'); } 
+        else { login.classList.add('hidden'); reg.classList.remove('hidden'); }
+    }
+
+    async function login() {
+        const nameInput = document.getElementById('login-name').value.trim();
+        const pinInput = getPinFromContainer('login-pin-container'); 
+        if (!nameInput || pinInput.length !== 4) return showMessage("Bitte Name und eine vollständige 4-stellige PIN eingeben.");
+
+        document.getElementById('auth-loader').classList.remove('hidden');
+        try {
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: nameInput, password: pinInput }) });
+            const result = await response.json();
+            if (result.success) {
+                currentUser = nameInput; currentPassword = pinInput;
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('main-view').classList.remove('hidden');
+                showMessage(result.message, true);
+                showSection('tipps');
+            } else { showMessage(result.error); }
+        } catch (error) { showMessage("Verbindungsfehler."); } 
+        finally { document.getElementById('auth-loader').classList.add('hidden'); }
+    }
+
+    async function register() {
+        const nameInput = document.getElementById('reg-name').value.trim();
+        const pinInput = getPinFromContainer('reg-pin-container'); 
+        const klasseInput = document.getElementById('reg-klasse').value;
+
+        if (pinInput.length !== 4) return showMessage("Bitte in alle 4 Kästchen eine Zahl eintragen.");
+        if (!nameInput) return showMessage("Bitte einen Namen eingeben.");
+
+        document.getElementById('auth-loader').classList.remove('hidden');
+        try {
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: nameInput, password: pinInput, klasse: klasseInput }) });
+            const result = await response.json();
+            if (result.success) {
+                currentUser = nameInput; currentPassword = pinInput;
+                document.getElementById('register-view').classList.add('hidden');
+                document.getElementById('summary-view').classList.remove('hidden');
+                document.getElementById('sum-name').innerText = nameInput;
+                document.getElementById('sum-pin').innerText = pinInput;
+            } else { showMessage(result.error); }
+        } catch (error) { showMessage("Verbindungsfehler."); } 
+        finally { document.getElementById('auth-loader').classList.add('hidden'); }
+    }
+
+    function proceedToMain() {
+        document.getElementById('summary-view').classList.add('hidden');
+        document.getElementById('main-view').classList.remove('hidden');
+        showMessage("Willkommen, " + currentUser + "!", true);
+        showSection('tipps');
     }
 
     function showSection(sectionId) {
         document.getElementById('tipps-section').classList.add('hidden');
+        document.getElementById('bonus-section').classList.add('hidden');
         document.getElementById('dashboard-section').classList.add('hidden');
-        document.getElementById(sectionId + '-section').classList.remove('hidden');
         
-        if (sectionId === 'tipps' || sectionId === 'dashboard') {
-            loadData();
+        document.getElementById(sectionId + '-section').classList.remove('hidden');
+
+        const floatingBar = document.getElementById('floating-save-bar');
+        const btnSaveSpiele = document.getElementById('btn-save-all');
+        const btnSaveBonus = document.getElementById('btn-save-bonus');
+
+        if (sectionId === 'tipps') {
+            floatingBar.classList.remove('hidden');
+            btnSaveSpiele.classList.remove('hidden');
+            btnSaveBonus.classList.add('hidden');
+        } else if (sectionId === 'bonus') {
+            floatingBar.classList.remove('hidden');
+            btnSaveSpiele.classList.add('hidden');
+            btnSaveBonus.classList.remove('hidden');
+        } else {
+            floatingBar.classList.add('hidden');
         }
-    }
 
-    async function login() {
-        const nameInput = document.getElementById('username').value.trim();
-        const passInput = document.getElementById('password').value.trim();
-
-        if (!nameInput || !passInput) {
-            showMessage("Bitte Name und Passwort eingeben.");
-            return;
-        }
-
-        document.getElementById('login-loader').classList.remove('hidden');
-
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'login', name: nameInput, password: passInput })
-            });
-            const result = await response.json();
-
-            if (result.success) {
-                currentUser = nameInput;
-                currentPassword = passInput;
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('main-view').classList.remove('hidden');
-                showSection('tipps');
-            } else {
-                showMessage(result.error);
-            }
-        } catch (error) {
-            showMessage("Fehler bei der Verbindung zum Server.");
-        } finally {
-            document.getElementById('login-loader').classList.add('hidden');
-        }
+        if (sectionId === 'tipps' || sectionId === 'dashboard' || sectionId === 'bonus') loadData();
     }
 
     async function loadData() {
         document.getElementById('data-loader').classList.remove('hidden');
         try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'getData', name: currentUser }) 
-            });
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', name: currentUser }) });
             const result = await response.json();
-
             if (result.success) {
+                const newsBox = document.getElementById('news-container');
+                if (result.news && result.news.trim() !== "") {
+                    newsBox.innerHTML = `&#128227; <strong>Aktuelle Info:</strong> ${result.news}`;
+                    newsBox.classList.remove('hidden');
+                } else { newsBox.classList.add('hidden'); }
+                
                 renderGames(result.spiele, result.userTipps);
                 renderRanking(result.ranking);
-            } else {
-                showMessage("Fehler beim Laden der Daten.");
-            }
-        } catch (error) {
-            showMessage("Fehler bei der Verbindung zum Server.");
-        } finally {
-            document.getElementById('data-loader').classList.add('hidden');
-        }
+                
+                if (result.bonusFragen) {
+                    renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
+                }
+            } else { showMessage("Fehler beim Laden."); }
+        } catch (error) { showMessage("Verbindungsfehler."); } 
+        finally { document.getElementById('data-loader').classList.add('hidden'); }
     }
 
     function renderGames(spiele, userTipps) {
         const container = document.getElementById('games-container');
         container.innerHTML = '';
-
         spiele.forEach(spiel => {
             const isLocked = spiel.status === 'gesperrt';
-            
             let zeitString = "Zeit unbekannt";
             if(spiel.zeit) {
                 const d = new Date(spiel.zeit);
                 zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) + ' Uhr';
             }
-
+            
             let existingTipp = userTipps.find(t => t.spielId == spiel.id);
             let valH = existingTipp ? existingTipp.tippH : '';
             let valA = existingTipp ? existingTipp.tippA : '';
+            let erzieltePunkte = existingTipp ? existingTipp.punkte : ''; 
+            let isTipped = (valH !== '' && valA !== '');
 
             const card = document.createElement('div');
             
-            // NEU: Wenn das Spiel gesperrt ist, weisen wir ihm zusätzlich die neue CSS-Klasse zu
-            card.className = isLocked ? 'game-card locked-game' : 'game-card';
-            
+            if (isLocked) { card.className = 'game-card locked-game'; } 
+            else if (isTipped) { card.className = 'game-card tipped-game'; } 
+            else { card.className = 'game-card'; }
+
+            let realResultHtml = "";
+            if (spiel.ergH !== "" && spiel.ergA !== "") {
+                realResultHtml = `<div class="real-result-banner">Endergebnis: ${spiel.ergH} : ${spiel.ergA}</div>`;
+            }
+
+            let pointsBadgeHtml = "";
+            if (isLocked && isTipped && erzieltePunkte !== '') {
+                let badgeClass = "points-badge";
+                if (erzieltePunkte == 3) badgeClass += " three";
+                else if (erzieltePunkte == 1) badgeClass += " one";
+                else if (erzieltePunkte == 0) badgeClass += " zero";
+
+                let text = (erzieltePunkte == 1) ? "1 Punkt" : erzieltePunkte + " Punkte";
+                pointsBadgeHtml = `<div class="${badgeClass}">${text}</div>`;
+            }
+
             card.innerHTML = `
+                ${pointsBadgeHtml}
                 <div class="game-header">${spiel.phase} - ${zeitString} ${isLocked ? '(Gesperrt)' : ''}</div>
                 <div class="matchup-row">
                     <div class="team-name home">${spiel.heim}</div>
@@ -308,6 +396,64 @@
                     </div>
                     <div class="team-name away">${spiel.auswaerts}</div>
                 </div>
+                ${realResultHtml}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderBonusFragen(fragen, userTipps) {
+        const container = document.getElementById('bonus-container');
+        container.innerHTML = '';
+        
+        if (!fragen || fragen.length === 0) {
+            container.innerHTML = '<p style="text-align:center;">Momentan gibt es keine Bonusfragen.</p>';
+            return;
+        }
+
+        fragen.forEach(frage => {
+            const isLocked = frage.status === 'gesperrt';
+            let zeitString = "Zeit unbekannt";
+            if(frage.zeit) {
+                const d = new Date(frage.zeit);
+                zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'}) + ' Uhr';
+            }
+            
+            let existingTipp = userTipps.find(t => t.frageId == frage.id);
+            let valTipp = existingTipp ? existingTipp.tipp : '';
+            let erzieltePunkte = existingTipp ? existingTipp.punkte : ''; 
+            let isTipped = (valTipp !== '');
+
+            const card = document.createElement('div');
+            
+            if (isLocked) { card.className = 'game-card locked-game'; } 
+            else if (isTipped) { card.className = 'game-card tipped-game'; } 
+            else { card.className = 'game-card'; }
+
+            let realResultHtml = "";
+            if (frage.echtesErg && frage.echtesErg !== "") {
+                realResultHtml = `<div class="real-result-banner">Auflösung: ${frage.echtesErg}</div>`;
+            }
+
+            let pointsBadgeHtml = "";
+            if (isLocked && isTipped && erzieltePunkte !== '') {
+                let badgeClass = "points-badge";
+                if (erzieltePunkte > 0) badgeClass += " three"; 
+                else badgeClass += " zero"; 
+
+                let text = (erzieltePunkte == 1) ? "1 Punkt" : erzieltePunkte + " Punkte";
+                pointsBadgeHtml = `<div class="${badgeClass}">${text}</div>`;
+            }
+
+            card.innerHTML = `
+                ${pointsBadgeHtml}
+                <div class="game-header">Deadline: ${zeitString} ${isLocked ? '(Gesperrt)' : ''} | Max. ${frage.maxPunkte} Punkte</div>
+                <div style="font-weight:bold; margin-bottom:15px; margin-top: 10px; text-align:center; font-size:1.1em;">${frage.frage}</div>
+                <div style="text-align:center;">
+                    <!-- HIER WIRD DIE NEUE KLASSE "bonus-input" VERWENDET -->
+                    <input type="text" id="bonus_${frage.id}" class="bonus-input" value="${valTipp}" ${isLocked ? 'disabled' : ''} placeholder="Dein Tipp...">
+                </div>
+                ${realResultHtml}
             `;
             container.appendChild(card);
         });
@@ -319,12 +465,41 @@
         
         ranking.sort((a, b) => b.punkte - a.punkte);
 
+        let currentRank = 1;
+        let previousPunkte = null;
+
         ranking.forEach((user, index) => {
+            if (previousPunkte !== null && user.punkte < previousPunkte) {
+                currentRank = index + 1; 
+            }
+            previousPunkte = user.punkte;
+
             const tr = document.createElement('tr');
+            if (user.name === currentUser) {
+                tr.className = "my-row";
+            }
+
+            let formHtml = `<div class="form-container">`;
+            if (user.letzteSpiele && user.letzteSpiele.length > 0) {
+                user.letzteSpiele.slice().reverse().forEach(punkteWert => {
+                    let circleClass = "form-circle";
+                    if (punkteWert == 3) circleClass += " points-3";
+                    else if (punkteWert == 1) circleClass += " points-1";
+                    else if (punkteWert == 0) circleClass += " points-0";
+                    
+                    formHtml += `<div class="${circleClass}">${punkteWert}</div>`;
+                });
+            } else {
+                formHtml += `<span style="color:#999; font-size:12px;">-</span>`;
+            }
+            formHtml += `</div>`;
+
             tr.innerHTML = `
-                <td>${index + 1}</td>
+                <td>${currentRank}</td>
                 <td>${user.name}</td>
-                <td>${user.punkte}</td>
+                <td>${user.klasse || '-'}</td>
+                <td>${formHtml}</td>
+                <td style="font-weight:bold;">${user.punkte}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -332,55 +507,63 @@
 
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
-        btn.disabled = true;
-        btn.innerText = "Speichere...";
-        
+        btn.disabled = true; btn.innerText = "Speichere...";
         const heimInputs = document.querySelectorAll('input[id^="heim_"]');
         let tippsToSave = [];
 
         heimInputs.forEach(inputH => {
             const spielId = inputH.id.split('_')[1];
             const inputA = document.getElementById('auswaerts_' + spielId);
-
             if (!inputH.disabled && inputH.value !== "" && inputA.value !== "") {
-                tippsToSave.push({
-                    spielId: spielId,
-                    tippH: inputH.value,
-                    tippA: inputA.value
-                });
+                tippsToSave.push({ spielId: spielId, tippH: inputH.value, tippA: inputA.value });
             }
         });
 
         if (tippsToSave.length === 0) {
-            showMessage("Keine neuen oder gültigen Tipps zum Speichern gefunden.");
-            btn.disabled = false;
-            btn.innerText = "Alle Tipps speichern";
-            return;
+            showMessage("Keine Tipps zum Speichern gefunden.");
+            btn.disabled = false; btn.innerText = "Spiele-Tipps speichern"; return;
         }
 
         try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    action: 'saveAllTipps', 
-                    name: currentUser, 
-                    password: currentPassword,
-                    tipps: tippsToSave
-                })
-            });
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tippsToSave }) });
             const result = await response.json();
+            if (result.success) { 
+                showMessage(result.message, true); 
+                loadData();
+            } 
+            else { showMessage("Fehler: " + result.error); }
+        } catch (error) { showMessage("Fehler beim Speichern."); } 
+        finally { btn.disabled = false; btn.innerText = "Spiele-Tipps speichern"; }
+    }
 
-            if (result.success) {
-                showMessage(result.message);
-            } else {
-                showMessage("Fehler: " + result.error);
+    async function saveBonusTipps() {
+        const btn = document.getElementById('btn-save-bonus');
+        btn.disabled = true; btn.innerText = "Speichere...";
+        const bonusInputs = document.querySelectorAll('input[id^="bonus_"]');
+        let tippsToSave = [];
+
+        bonusInputs.forEach(input => {
+            const frageId = input.id.split('_')[1];
+            if (!input.disabled && input.value.trim() !== "") {
+                tippsToSave.push({ frageId: frageId, tipp: input.value.trim() });
             }
-        } catch (error) {
-            showMessage("Fehler beim Speichern der Daten.");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Alle Tipps speichern";
+        });
+
+        if (tippsToSave.length === 0) {
+            showMessage("Keine Bonus-Tipps zum Speichern gefunden.");
+            btn.disabled = false; btn.innerText = "Bonusfragen speichern"; return;
         }
+
+        try {
+            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tippsToSave }) });
+            const result = await response.json();
+            if (result.success) { 
+                showMessage(result.message, true); 
+                loadData();
+            } 
+            else { showMessage("Fehler: " + result.error); }
+        } catch (error) { showMessage("Fehler beim Speichern."); } 
+        finally { btn.disabled = false; btn.innerText = "Bonusfragen speichern"; }
     }
 </script>
 
