@@ -4,84 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frida_tippt_WM26</title>
+    
+    <!-- Bibliothek für die Screenshot-Funktion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; }
-        .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
         h1, h2 { color: #004494; text-align: center; }
         
         .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
-        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 20px; font-weight: bold; }
         
+        /* News-Box Styling - Text jetzt mittig zentriert */
+        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 10px; font-weight: bold; text-align: center; }
+        
+        /* Pfeile in Input-Feldern entfernen */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
         /* Auth Styles */
         .auth-wrapper { width: 240px; margin: 0 auto; text-align: left; }
         .auth-wrapper label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.95em; }
         .auth-wrapper input[type="text"], .auth-wrapper select { width: 100%; padding: 12px; margin: 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
 
-        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type="number"] { -moz-appearance: textfield; }
-
         .pin-container { display: flex; justify-content: space-between; margin-top: 5px; margin-bottom: 15px; gap: 13px; }
         .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; }
-        .pin-box:focus { border-color: #004494; outline: none; background-color: #fff; box-shadow: 0 0 5px rgba(0,68,148,0.3); }
 
-        button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; margin-top: 10px; }
-        button:hover { background-color: #003377; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-sizing: border-box; }
         
         /* Navigation Buttons Grid */
-        .nav-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .nav-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; margin-top: 10px; }
         .btn-half { flex: 1 1 calc(50% - 5px); margin: 0; }
         .btn-full { flex: 1 1 100%; margin: 0; }
-        .btn-ranking { background-color: #28a745; } /* Ranking in Grün */
-        .btn-ranking:hover { background-color: #218838; }
-        .btn-rules { background-color: #6c757d; } /* Regeln in Grau */
+        .btn-ranking { background-color: #28a745; }
+        .btn-rules { background-color: #6c757d; }
         
+        .active-btn { outline: 4px solid #333; outline-offset: 2px; }
+
         .hidden { display: none !important; }
         .toggle-link { text-align: center; color: #004494; text-decoration: underline; cursor: pointer; margin-top: 10px; display: block; }
 
-        /* Game Cards & Layout Fixes */
+        /* Game Cards */
         .game-card { border: 1px solid #e1e4e8; padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #fafbfc; position: relative; }
         .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
         .matchup-row { display: flex; align-items: center; justify-content: center; width: 100%; gap: 5px; }
-        .team-name { flex: 1; font-weight: bold; font-size: 0.9em; line-height: 1.2; overflow-wrap: break-word; }
+        .team-name { flex: 1; font-weight: bold; font-size: 0.9em; line-height: 1.2; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
         
         .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; min-width: 90px; }
-        .score-inputs input { width: 38px; height: 38px; padding: 0; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: bold; }
+        .score-inputs input { width: 38px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: bold; }
 
-        /* Dashboard Fixes */
-        .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        /* Dashboard & Tabelle */
+        .table-wrapper { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
         th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f0f2f5; color: #555; font-size: 0.85em; }
         
-        /* Form Circles */
+        /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
         .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; }
         .form-circle.points-3 { background-color: #28a745; } 
         .form-circle.points-1 { background-color: #ffc107; color: #333; } 
         .form-circle.points-0 { background-color: #dc3545; }
 
-        /* Regel-Seite */
-        .rules-box { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; line-height: 1.5; }
-        .rules-box h4 { margin-top: 15px; margin-bottom: 5px; color: #004494; }
-        .rules-box ul { padding-left: 20px; }
-
+        .rules-box { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; }
+        
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; min-height: 1.2em; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
         
         #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; justify-content: center; box-sizing: border-box; z-index: 1000; }
         #floating-save-bar button { max-width: 600px; margin: 0; background-color: #28a745; }
 
-        /* Bonus Input */
-        .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; }
+        /* Stil für Bonus-Eingaben (Text und Dropdown) */
+        .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background-color: #fff; }
+
+        .version-number { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #999; }
 
         @media (max-width: 400px) {
-            .team-name { font-size: 0.8em; }
-            th, td { font-size: 13px; padding: 6px 2px; }
+            .team-name { font-size: 0.85em; }
+            th, td { font-size: 13px; }
         }
     </style>
 </head>
@@ -93,7 +97,6 @@
 
     <div id="message-box"></div>
 
-    <!-- LOGIN -->
     <div id="login-view">
         <h2>Anmeldung</h2>
         <div class="auth-wrapper">
@@ -107,11 +110,11 @@
                 <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
             </div>
             <button onclick="login()">Einloggen</button>
-            <span class="toggle-link" onclick="toggleAuthView()">Noch kein Konto? Hier registrieren.</span>
+            <span class="toggle-link" onclick="alert('Frage Herr Czojor nach einem neuen Passwort!')">Passwort vergessen?</span>
+            <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? Hier registrieren.</span>
         </div>
     </div>
 
-    <!-- REGISTRIERUNG -->
     <div id="register-view" class="hidden">
         <h2>Neu registrieren</h2>
         <div class="auth-wrapper">
@@ -120,14 +123,11 @@
             <label>Klasse:</label>
             <select id="reg-klasse">
                 <option value="Mitarbeiter*in">Mitarbeiter*in</option>
-                <option value="A1a">A1a</option>
-                <option value="A1b">A1b</option>
-                <option value="A2a">A2a</option>
-                <option value="A2b">A2b</option>
-                <option value="A3a">A3a</option>
-                <option value="A3b">A3b</option>
+                <option value="A1a">A1a</option><option value="A1b">A1b</option>
+                <option value="A2a">A2a</option><option value="A2b">A2b</option>
+                <option value="A3a">A3a</option><option value="A3b">A3b</option>
             </select>
-            <label>PIN ausdenken (4 Zahlen):</label>
+            <label>PIN (4 Zahlen):</label>
             <div class="pin-container" id="reg-pin-container">
                 <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
                 <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
@@ -135,87 +135,71 @@
                 <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
             </div>
             <button onclick="register()">Registrieren</button>
-            <span class="toggle-link" onclick="toggleAuthView()">Zurück zur Anmeldung.</span>
+            <span class="toggle-link" onclick="toggleAuthView()">Zurück zum Login.</span>
         </div>
     </div>
 
-    <!-- SUMMARY -->
     <div id="summary-view" class="hidden">
-        <div class="summary-box" style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center;">
-            <h3>Erfolgreich registriert!</h3>
-            <p>Bitte merke dir deine Daten:</p>
-            <p><strong>Name:</strong> <span id="sum-name"></span><br>
-            <strong>PIN:</strong> <span id="sum-pin"></span></p>
-            <button onclick="proceedToMain()">Weiter zum Tippspiel</button>
+        <div id="credentials-box" class="summary-box" style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #c3e6cb;">
+            <h3 style="margin-top: 0; color: #155724;">Erfolgreich!</h3>
+            <p style="color: #155724;">Deine Zugangsdaten für das Tippspiel:</p>
+            <p style="color: #155724; font-size: 1.1em;"><strong>Name:</strong> <span id="sum-name"></span><br>
+            <strong>PIN:</strong> <span id="sum-pin" style="letter-spacing: 2px;"></span></p>
         </div>
+        <button onclick="downloadCredentials()" style="background-color: #17a2b8;">📸 Als Foto speichern</button>
+        <button onclick="proceedToMain()">Weiter zum Spiel</button>
     </div>
 
     <div id="auth-loader" class="loader hidden">Verbindung wird hergestellt...</div>
 
-    <!-- MAIN VIEW -->
     <div id="main-view" class="hidden">
-        <div id="news-container" class="news-box hidden"></div>
         
-        <div id="startseite-nav">
-            <div class="nav-buttons">
-                <button class="btn-half" onclick="showSection('tipps')">Spiele tippen</button>
-                <button class="btn-half" onclick="showSection('bonus')">Bonusfragen</button>
-                <button class="btn-full btn-ranking" onclick="showSection('dashboard')">Ranking ansehen</button>
-                <button class="btn-full btn-rules" onclick="showSection('regeln')">Spielregeln</button>
-            </div>
+        <div id="start-header-section" class="hidden">
+            <!-- News Box Container -->
+            <div id="news-container" class="news-box hidden"></div>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="nav-tipps" class="btn-half" onclick="showSection('tipps')">⚽️ Spiele tippen</button>
+            <button id="nav-bonus" class="btn-half" onclick="showSection('bonus')">⭐️ Bonusfragen</button>
+            <button id="nav-dashboard" class="btn-full btn-ranking" onclick="showSection('dashboard')">🏆 Ranking ansehen</button>
+            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Spielregeln</button>
         </div>
         
-        <div id="data-loader" class="loader hidden">Daten werden geladen...</div>
-        
-        <!-- Sektionen -->
+        <div id="start-section" class="hidden">
+            <p style="text-align: center;">Wähle oben einen Bereich aus, um loszulegen.</p>
+            <div id="loader-start" class="loader hidden">Daten werden geladen...</div>
+        </div>
+
         <div id="tipps-section" class="hidden">
-            <button onclick="backToStart()" style="background:#666; padding: 8px; font-size: 14px; width: auto;">&larr; Home</button>
-            <h2>Spiele tippen</h2>
+            <h2>⚽️ Spiele tippen</h2>
+            <div id="loader-tipps" class="loader hidden">Daten werden geladen...</div>
             <div id="games-container"></div>
         </div>
 
         <div id="bonus-section" class="hidden">
-            <button onclick="backToStart()" style="background:#666; padding: 8px; font-size: 14px; width: auto;">&larr; Home</button>
-            <h2>Bonusfragen</h2>
+            <h2>⭐️ Bonusfragen</h2>
+            <div id="loader-bonus" class="loader hidden">Daten werden geladen...</div>
             <div id="bonus-container"></div>
         </div>
 
         <div id="dashboard-section" class="hidden">
-            <button onclick="backToStart()" style="background:#666; padding: 8px; font-size: 14px; width: auto;">&larr; Home</button>
-            <h2>Ranking</h2>
+            <h2>🏆 Ranking</h2>
             <div class="table-wrapper">
                 <table>
                     <thead>
-                        <tr>
-                            <th>Platz</th>
-                            <th>Name</th>
-                            <th>Klasse</th>
-                            <th>Form</th> 
-                            <th>Pkt</th>
-                        </tr>
+                        <tr><th>Platz</th><th>Name</th><th>Kl.</th><th>Form</th><th>Pkt</th></tr>
                     </thead>
                     <tbody id="ranking-body"></tbody>
                 </table>
             </div>
+            <div id="loader-dashboard" class="loader hidden">Daten werden geladen...</div>
         </div>
 
-        <!-- NEU: Spielregeln Sektion -->
         <div id="regeln-section" class="hidden">
-            <button onclick="backToStart()" style="background:#666; padding: 8px; font-size: 14px; width: auto;">&larr; Home</button>
-            <h2>Spielregeln</h2>
-            <div class="rules-box">
-                <h4>Punkteregeln</h4>
-                <ul>
-                    <li><strong>3 Punkte:</strong> Exaktes Ergebnis getippt.</li>
-                    <li><strong>2 Punkte:</strong> Richtige Tordifferenz oder Unentschieden-Tendenz getippt.</li>
-                    <li><strong>1 Punkt:</strong> Richtige Tendenz (Sieg/Niederlage) getippt.</li>
-                </ul>
-                <h4>Tippregeln</h4>
-                <ul>
-                    <li>Tipps können bis zum offiziellen Anstoß des jeweiligen Spiels abgegeben oder geändert werden.</li>
-                    <li>Sobald ein Spiel angepfiffen wurde, wird das Eingabefeld gesperrt.</li>
-                    <li>Bonusfragen haben eine eigene Deadline, die über der Frage steht.</li>
-                </ul>
+            <h2>❗️ Spielregeln</h2>
+            <div id="regeln-content" class="rules-box">
+                Regeln werden geladen...
             </div>
         </div>
         
@@ -225,6 +209,8 @@
         </div>
     </div>
 </div>
+
+<div class="version-number">v1.10</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -236,190 +222,178 @@
         if (elem.value.length >= 1) {
             elem.value = elem.value.substring(0, 1);
             let next = elem.nextElementSibling;
-            if (next && next.tagName === 'INPUT') { next.focus(); }
+            if (next && next.tagName === 'INPUT') next.focus();
         }
     }
-
     function handlePinBackspace(elem, event) {
         if (event.key === "Backspace" && elem.value === "") {
             let prev = elem.previousElementSibling;
-            if (prev && prev.tagName === 'INPUT') { prev.focus(); }
+            if (prev && prev.tagName === 'INPUT') prev.focus();
         }
     }
-
-    function getPinFromContainer(containerId) {
-        const container = document.getElementById(containerId);
-        const inputs = container.querySelectorAll('.pin-box');
+    function getPinFromContainer(id) {
         let pin = "";
-        inputs.forEach(input => pin += input.value);
+        document.getElementById(id).querySelectorAll('.pin-box').forEach(i => pin += i.value);
         return pin;
     }
-
     function showMessage(msg, isSuccess = false) {
         const box = document.getElementById('message-box');
         box.style.color = isSuccess ? '#28a745' : '#d9534f';
         box.innerText = msg;
-        setTimeout(() => box.innerText = '', 6000);
+        setTimeout(() => box.innerText = '', 5000);
+    }
+    function toggleAuthView() {
+        document.getElementById('login-view').classList.toggle('hidden');
+        document.getElementById('register-view').classList.toggle('hidden');
     }
 
-    function toggleAuthView() {
-        const login = document.getElementById('login-view');
-        const reg = document.getElementById('register-view');
-        login.classList.toggle('hidden');
-        reg.classList.toggle('hidden');
+    function downloadCredentials() {
+        const element = document.getElementById('credentials-box');
+        html2canvas(element).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'Tippspiel_Zugangsdaten.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
     }
 
     async function login() {
-        const nameInput = document.getElementById('login-name').value.trim();
-        const pinInput = getPinFromContainer('login-pin-container'); 
-        if (!nameInput || pinInput.length !== 4) return showMessage("Bitte Name und 4-stellige PIN eingeben.");
-
+        const n = document.getElementById('login-name').value.trim();
+        const p = getPinFromContainer('login-pin-container'); 
+        if (!n || p.length !== 4) return showMessage("Name/PIN unvollständig.");
         document.getElementById('auth-loader').classList.remove('hidden');
         try {
-            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: nameInput, password: pinInput }) });
-            const result = await response.json();
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
+            const result = await res.json();
             if (result.success) {
-                currentUser = nameInput; currentPassword = pinInput;
+                currentUser = n; currentPassword = p;
                 document.getElementById('login-view').classList.add('hidden');
                 document.getElementById('main-view').classList.remove('hidden');
-                showMessage(result.message, true);
-            } else { showMessage(result.error); }
-        } catch (error) { showMessage("Verbindungsfehler."); } 
+                showSection('start');
+            } else showMessage(result.error);
+        } catch (e) { showMessage("Fehler."); } 
         finally { document.getElementById('auth-loader').classList.add('hidden'); }
     }
 
     async function register() {
-        const nameInput = document.getElementById('reg-name').value.trim();
-        const pinInput = getPinFromContainer('reg-pin-container'); 
-        const klasseInput = document.getElementById('reg-klasse').value;
-        if (!nameInput || pinInput.length !== 4) return showMessage("Bitte Name und 4 Zahlen eingeben.");
-
+        const n = document.getElementById('reg-name').value.trim();
+        const p = getPinFromContainer('reg-pin-container'); 
+        const k = document.getElementById('reg-klasse').value;
+        if (!n || p.length !== 4) return showMessage("Eingaben unvollständig.");
         document.getElementById('auth-loader').classList.remove('hidden');
         try {
-            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: nameInput, password: pinInput, klasse: klasseInput }) });
-            const result = await response.json();
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, password: p, klasse: k }) });
+            const result = await res.json();
             if (result.success) {
-                currentUser = nameInput; currentPassword = pinInput;
+                currentUser = n; currentPassword = p;
+                document.getElementById('sum-name').innerText = n;
+                document.getElementById('sum-pin').innerText = p;
                 document.getElementById('register-view').classList.add('hidden');
                 document.getElementById('summary-view').classList.remove('hidden');
-                document.getElementById('sum-name').innerText = nameInput;
-                document.getElementById('sum-pin').innerText = pinInput;
-            } else { showMessage(result.error); }
-        } catch (error) { showMessage("Verbindungsfehler."); } 
+            } else showMessage(result.error);
+        } catch (e) { showMessage("Fehler."); } 
         finally { document.getElementById('auth-loader').classList.add('hidden'); }
     }
 
     function proceedToMain() {
         document.getElementById('summary-view').classList.add('hidden');
         document.getElementById('main-view').classList.remove('hidden');
+        showSection('start');
     }
 
-    function showSection(sectionId) {
-        // Startmenü verstecken
-        document.getElementById('startseite-nav').classList.add('hidden');
-        
-        // Alle Sektionen verstecken
-        document.getElementById('tipps-section').classList.add('hidden');
-        document.getElementById('bonus-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.add('hidden');
-        document.getElementById('regeln-section').classList.add('hidden');
-        
-        // Zielsektion zeigen
-        document.getElementById(sectionId + '-section').classList.remove('hidden');
-
-        // Floating Bars Logik
-        const floatingBar = document.getElementById('floating-save-bar');
-        const btnSaveSpiele = document.getElementById('btn-save-all');
-        const btnSaveBonus = document.getElementById('btn-save-bonus');
-
-        if (sectionId === 'tipps') {
-            floatingBar.classList.remove('hidden');
-            btnSaveSpiele.classList.remove('hidden');
-            btnSaveBonus.classList.add('hidden');
-            loadData();
-        } else if (sectionId === 'bonus') {
-            floatingBar.classList.remove('hidden');
-            btnSaveSpiele.classList.add('hidden');
-            btnSaveBonus.classList.remove('hidden');
-            loadData();
-        } else if (sectionId === 'dashboard') {
-            floatingBar.classList.add('hidden');
-            loadData();
-        } else {
-            floatingBar.classList.add('hidden');
-        }
-    }
-
-    function backToStart() {
-        document.getElementById('startseite-nav').classList.remove('hidden');
-        document.getElementById('tipps-section').classList.add('hidden');
-        document.getElementById('bonus-section').classList.add('hidden');
-        document.getElementById('dashboard-section').classList.add('hidden');
-        document.getElementById('regeln-section').classList.add('hidden');
-        document.getElementById('floating-save-bar').classList.add('hidden');
-    }
-
-    async function loadData() {
-        document.getElementById('data-loader').classList.remove('hidden');
-        try {
-            const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', name: currentUser }) });
-            const result = await response.json();
-            if (result.success) {
-                const newsBox = document.getElementById('news-container');
-                if (result.news && result.news.trim() !== "") {
-                    newsBox.innerHTML = `&#128227; <strong>Info:</strong> ${result.news}`;
-                    newsBox.classList.remove('hidden');
-                } else { newsBox.classList.add('hidden'); }
-                
-                renderGames(result.spiele, result.userTipps);
-                renderRanking(result.ranking);
-                if (result.bonusFragen) renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
+    function showSection(id) {
+        ['start', 'tipps', 'bonus', 'dashboard', 'regeln'].forEach(s => {
+            document.getElementById(s + '-section').classList.add('hidden');
+            if (document.getElementById('nav-' + s)) {
+                document.getElementById('nav-' + s).classList.remove('active-btn');
             }
-        } catch (error) { console.log(error); } 
-        finally { document.getElementById('data-loader').classList.add('hidden'); }
+        });
+        
+        document.getElementById(id + '-section').classList.remove('hidden');
+        if (id !== 'start') document.getElementById('nav-' + id).classList.add('active-btn');
+
+        if (id === 'start') {
+            document.getElementById('start-header-section').classList.remove('hidden');
+        } else {
+            document.getElementById('start-header-section').classList.add('hidden');
+        }
+
+        const bar = document.getElementById('floating-save-bar');
+        if (id === 'tipps') {
+            bar.classList.remove('hidden');
+            document.getElementById('btn-save-all').classList.remove('hidden');
+            document.getElementById('btn-save-bonus').classList.add('hidden');
+        } else if (id === 'bonus') {
+            bar.classList.remove('hidden');
+            document.getElementById('btn-save-all').classList.add('hidden');
+            document.getElementById('btn-save-bonus').classList.remove('hidden');
+        } else {
+            bar.classList.add('hidden');
+        }
+        
+        loadData(id);
+    }
+
+    async function loadData(context) {
+        const loader = document.getElementById('loader-' + context);
+        if (loader) loader.classList.remove('hidden');
+        
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', name: currentUser }) });
+            const result = await res.json();
+            if (result.success) {
+                const news = document.getElementById('news-container');
+                if (context === 'start' && result.news && result.news.trim() !== "") {
+                    news.innerHTML = result.news; 
+                    news.classList.remove('hidden');
+                } else if (context === 'start') {
+                    news.classList.add('hidden');
+                }
+                
+                if (result.regeln && result.regeln.trim() !== "") {
+                    document.getElementById('regeln-content').innerHTML = result.regeln;
+                } else if (context === 'regeln') {
+                    document.getElementById('regeln-content').innerHTML = "<p>Aktuell sind keine Regeln hinterlegt.</p>";
+                }
+                
+                if (context === 'tipps') renderGames(result.spiele, result.userTipps);
+                if (context === 'dashboard') renderRanking(result.ranking);
+                if (context === 'bonus') renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
+            }
+        } catch (e) { console.log(e); } 
+        finally { 
+            if (loader) loader.classList.add('hidden'); 
+        }
     }
 
     function renderGames(spiele, userTipps) {
         const container = document.getElementById('games-container');
         container.innerHTML = '';
-        spiele.forEach(spiel => {
-            const isLocked = spiel.status === 'gesperrt';
-            let zeitString = "";
-            if(spiel.zeit) {
-                const d = new Date(spiel.zeit);
-                zeitString = d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
-            }
+        spiele.forEach(s => {
+            const isL = s.status === 'gesperrt';
+            const t = userTipps.find(ti => ti.spielId == s.id) || {tippH:'', tippA:'', punkte:''};
             
-            let existingTipp = userTipps.find(t => t.spielId == spiel.id);
-            let valH = existingTipp ? existingTipp.tippH : '';
-            let valA = existingTipp ? existingTipp.tippA : '';
-            let erzieltePunkte = existingTipp ? existingTipp.punkte : ''; 
+            let terminStr = "";
+            if (s.zeit) {
+                const d = new Date(s.zeit);
+                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + 
+                            d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+            }
 
             const card = document.createElement('div');
-            card.className = 'game-card' + (isLocked ? ' locked-game' : (valH !== '' ? ' tipped-game' : ''));
+            card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
+            
+            let badge = (isL && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
+            let res = (s.ergH !== "" && s.ergA !== "") ? `<div style="background:#004494; color:#fff; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
 
-            let pointsBadgeHtml = "";
-            if (isLocked && valH !== '' && erzieltePunkte !== '') {
-                let bc = erzieltePunkte == 3 ? 'points-3' : (erzieltePunkte == 1 ? 'points-1' : 'points-0');
-                pointsBadgeHtml = `<div class="form-circle ${bc}" style="position:absolute; top:8px; right:8px; width:24px; height:24px; font-size:14px;">${erzieltePunkte}</div>`;
-            }
-
-            let realResult = (spiel.ergH !== "" && spiel.ergA !== "") ? `<div style="background:#004494; color:#fff; font-size:11px; padding:2px; border-radius:4px; margin-top:8px; text-align:center;">Endstand: ${spiel.ergH}:${spiel.ergA}</div>` : "";
-
-            card.innerHTML = `
-                ${pointsBadgeHtml}
-                <div style="font-size:10px; color:#666; margin-bottom:5px; text-align:center;">${spiel.phase} - ${zeitString} ${isLocked ? '🔒' : ''}</div>
-                <div class="matchup-row">
-                    <div class="team-name home">${spiel.heim}</div>
-                    <div class="score-inputs">
-                        <input type="number" id="heim_${spiel.id}" value="${valH}" ${isLocked ? 'disabled' : ''}>
-                        <span>:</span>
-                        <input type="number" id="auswaerts_${spiel.id}" value="${valA}" ${isLocked ? 'disabled' : ''}>
-                    </div>
-                    <div class="team-name away">${spiel.auswaerts}</div>
+            card.innerHTML = `${badge}
+                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">
+                    <strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}
                 </div>
-                ${realResult}
-            `;
+                <div class="matchup-row"><div class="team-name home">${s.heim}</div>
+                <div class="score-inputs"><input type="number" id="heim_${s.id}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
+                <input type="number" id="auswaerts_${s.id}" value="${t.tippA}" ${isL?'disabled':''}></div>
+                <div class="team-name away">${s.auswaerts}</div></div>${res}`;
             container.appendChild(card);
         });
     }
@@ -427,17 +401,46 @@
     function renderBonusFragen(fragen, userTipps) {
         const container = document.getElementById('bonus-container');
         container.innerHTML = '';
-        fragen.forEach(frage => {
-            const isLocked = frage.status === 'gesperrt';
-            let existingTipp = userTipps.find(t => t.frageId == frage.id);
-            let valTipp = existingTipp ? existingTipp.tipp : '';
+        fragen.forEach(f => {
+            const isL = f.status === 'gesperrt';
+            const t = userTipps.find(ti => ti.frageId == f.id) || {tipp:'', punkte:''};
+            
+            let terminStr = "Keine Frist gesetzt";
+            if (f.zeit) {
+                const d = new Date(f.zeit);
+                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + 
+                            d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+            }
+
             const card = document.createElement('div');
-            card.className = 'game-card' + (isLocked ? ' locked-game' : (valTipp !== '' ? ' tipped-game' : ''));
-            card.innerHTML = `
-                <div style="font-size:10px; color:#666; text-align:center;">Max. ${frage.maxPunkte} Pkt ${isLocked ? '🔒' : ''}</div>
-                <div style="font-weight:bold; text-align:center; margin:10px 0;">${frage.frage}</div>
-                <input type="text" id="bonus_${frage.id}" class="bonus-input" value="${valTipp}" ${isLocked ? 'disabled' : ''} placeholder="Deine Antwort...">
-                ${frage.echtesErg ? `<div style="color:#004494; font-size:11px; text-align:center;">Lösung: ${frage.echtesErg}</div>` : ''}
+            card.className = 'game-card' + (isL ? ' locked-game' : (t.tipp !== '' ? ' tipped-game' : ''));
+            
+            let badge = "";
+            if (isL && t.punkte !== '') {
+                let bgCol = (t.punkte > 0) ? '#28a745' : '#dc3545';
+                badge = `<div class="form-circle" style="background-color: ${bgCol}; position:absolute; top:8px; right:8px; width:28px; height:28px; color:white; font-size:14px;">${t.punkte}</div>`;
+            }
+            
+            let inputElementHtml = "";
+            if (f.auswahl && f.auswahl.trim() !== "") {
+                let options = f.auswahl.split(',').map(opt => opt.trim());
+                inputElementHtml = `<select id="bonus_${f.id}" class="bonus-input" style="text-align-last: center;" ${isL?'disabled':''}>`;
+                inputElementHtml += `<option value="">Bitte wählen...</option>`;
+                options.forEach(opt => {
+                    let isSelected = (t.tipp === opt) ? "selected" : "";
+                    inputElementHtml += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+                });
+                inputElementHtml += `</select>`;
+            } else {
+                inputElementHtml = `<input type="text" id="bonus_${f.id}" class="bonus-input" value="${t.tipp}" ${isL?'disabled':''} placeholder="Antwort...">`;
+            }
+
+            card.innerHTML = `${badge}
+                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">
+                    ${terminStr} ${isL ? '🔒' : ''}
+                </div>
+                <div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>
+                ${inputElementHtml}
             `;
             container.appendChild(card);
         });
@@ -446,21 +449,12 @@
     function renderRanking(ranking) {
         const tbody = document.getElementById('ranking-body');
         tbody.innerHTML = '';
-        ranking.sort((a, b) => b.punkte - a.punkte);
-        ranking.forEach((user, index) => {
+        ranking.sort((a, b) => b.punkte - a.punkte).forEach((u, i) => {
             const tr = document.createElement('tr');
-            if (user.name === currentUser) tr.style.background = "#d4edda";
-
-            let formHtml = `<div class="form-container">`;
-            if (user.letzteSpiele) {
-                user.letzteSpiele.slice().reverse().forEach(p => {
-                    let c = p == 3 ? 'points-3' : (p == 1 ? 'points-1' : 'points-0');
-                    formHtml += `<div class="form-circle ${c}">${p}</div>`;
-                });
-            }
-            formHtml += `</div>`;
-
-            tr.innerHTML = `<td>${index + 1}</td><td>${user.name}</td><td>${user.klasse || ''}</td><td>${formHtml}</td><td style="font-weight:bold;">${user.punkte}</td>`;
+            if (u.name === currentUser) tr.style.background = "#d4edda";
+            let f = `<div class="form-container">`;
+            if (u.letzteSpiele) u.letzteSpiele.slice().reverse().forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
+            tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold;">${u.punkte}</td>`;
             tbody.appendChild(tr);
         });
     }
@@ -468,36 +462,39 @@
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
-        let tippsToSave = [];
+        let tipps = [];
         document.querySelectorAll('input[id^="heim_"]').forEach(h => {
             const id = h.id.split('_')[1];
             const a = document.getElementById('auswaerts_' + id);
-            if (!h.disabled && h.value !== "" && a.value !== "") tippsToSave.push({ spielId: id, tippH: h.value, tippA: a.value });
+            if (!h.disabled && h.value !== "" && a.value !== "") tipps.push({ spielId: id, tippH: h.value, tippA: a.value });
         });
-        if (tippsToSave.length === 0) { btn.disabled = false; btn.innerText = "Tipps speichern"; return showMessage("Keine Tipps eingetragen."); }
         try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tippsToSave }) });
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showMessage("Gespeichert!", true); loadData(); }
-        } catch (e) { showMessage("Fehler beim Speichern."); }
+            if (result.success) { showMessage("Gespeichert!", true); loadData('tipps'); }
+        } catch (e) { showMessage("Fehler."); }
         finally { btn.disabled = false; btn.innerText = "Tipps speichern"; }
     }
 
     async function saveBonusTipps() {
         const btn = document.getElementById('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
-        let tippsToSave = [];
-        document.querySelectorAll('input[id^="bonus_"]').forEach(input => {
-            if (!input.disabled && input.value.trim() !== "") tippsToSave.push({ frageId: input.id.split('_')[1], tipp: input.value.trim() });
+        let tipps = [];
+        
+        document.querySelectorAll('.bonus-input').forEach(input => {
+            if (!input.disabled && input.value.trim() !== "") {
+                let frageId = input.id.split('_')[1];
+                tipps.push({ frageId: frageId, tipp: input.value.trim() });
+            }
         });
+        
         try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tippsToSave }) });
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showMessage("Bonus gespeichert!", true); loadData(); }
+            if (result.success) { showMessage("Bonus gespeichert!", true); loadData('bonus'); }
         } catch (e) { showMessage("Fehler."); }
         finally { btn.disabled = false; btn.innerText = "Bonus speichern"; }
     }
 </script>
-
 </body>
 </html>
