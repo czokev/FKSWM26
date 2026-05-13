@@ -4,33 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Frida_tippt_WM26</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽️</text></svg>">
     
     <!-- Bibliothek für die Screenshot-Funktion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; hyphens: auto; }
         .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
         h1, h2 { color: #004494; text-align: center; }
         
         .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
         
-        /* News-Box Styling - Text jetzt mittig zentriert */
-        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 10px; font-weight: bold; text-align: center; }
+        /* News-Box Styling - Abstand nach unten vergrößert (Punkt 7) */
+        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 32px; font-weight: bold; text-align: center; }
         
         /* Pfeile in Input-Feldern entfernen */
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
-        /* Auth Styles - Kontur von 1px auf 2px erhöht und etwas abgedunkelt */
+        /* Auth Styles */
         .auth-wrapper { width: 240px; margin: 0 auto; text-align: left; }
         .auth-wrapper label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.95em; }
         .auth-wrapper input[type="text"], .auth-wrapper select { width: 100%; padding: 12px; margin: 0; border: 2px solid #999; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
 
         .pin-container { display: flex; justify-content: space-between; margin-top: 5px; margin-bottom: 15px; gap: 13px; }
-        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #999; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; }
+        /* PIN-Box mit sofortiger Maskierung (Punkt 4) */
+        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #999; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; -webkit-text-security: disc; text-security: disc; }
 
         button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-sizing: border-box; }
         
@@ -39,39 +39,48 @@
         .btn-half { flex: 1 1 calc(50% - 5px); margin: 0; }
         .btn-full { flex: 1 1 100%; margin: 0; }
         .btn-ranking { background-color: #28a745; }
-        .btn-rules { background-color: #6c757d; }
+        /* Helleres Grau für den Regeln-Button (Punkt 5) */
+        .btn-rules { background-color: #8c98a4; } 
         
         .active-btn { outline: 4px solid #333; outline-offset: 2px; }
 
         .hidden { display: none !important; }
         .toggle-link { text-align: center; color: #004494; text-decoration: underline; cursor: pointer; margin-top: 10px; display: block; }
 
-        /* Game Cards */
+        /* Game Cards & Matchups (Punkt 1 & 2) */
         .game-card { border: 1px solid #e1e4e8; padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #fafbfc; position: relative; }
         .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
-        .matchup-row { display: flex; align-items: center; justify-content: center; width: 100%; gap: 5px; }
-        .team-name { flex: 1; font-weight: bold; font-size: 0.9em; line-height: 1.2; }
+        .matchup-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; }
+        .team-name { flex: 1; font-weight: normal; font-size: 0.9em; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
         
-        .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; min-width: 90px; }
+        /* Feste Breite für die Score-Inputs, damit sie nicht zerdrückt werden */
+        .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; width: 90px; flex-shrink: 0; }
         .score-inputs input { width: 38px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: bold; }
 
-        /* Dashboard & Tabelle */
+        /* Dashboard & Tabelle (Punkt 1) */
         .table-wrapper { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
-        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
+        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; overflow-wrap: break-word; }
+        th:nth-child(1) { width: 12%; } /* Platz */
+        th:nth-child(2) { width: 32%; } /* Name */
+        th:nth-child(3) { width: 16%; } /* Klasse */
+        th:nth-child(4) { width: 25%; } /* Form */
+        th:nth-child(5) { width: 15%; text-align: right;} /* Punkte */
+        td:nth-child(5) { text-align: right; }
         
         /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
-        .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; }
+        .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; flex-shrink: 0; }
         .form-circle.points-3 { background-color: #28a745; } 
         .form-circle.points-1 { background-color: #ffc107; color: #333; } 
         .form-circle.points-0 { background-color: #dc3545; }
 
-        .rules-box { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; }
+        /* Spielregeln in Blocksatz (Punkt 3) */
+        .rules-box { text-align: justify; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; hyphens: auto; }
         
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; min-height: 1.2em; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
@@ -79,14 +88,16 @@
         #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; justify-content: center; box-sizing: border-box; z-index: 1000; }
         #floating-save-bar button { max-width: 600px; margin: 0; background-color: #28a745; }
 
-        /* Stil für Bonus-Eingaben (Text und Dropdown) */
         .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background-color: #fff; }
 
         .version-number { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #999; }
 
         @media (max-width: 400px) {
             .team-name { font-size: 0.85em; }
-            th, td { font-size: 13px; }
+            th, td { font-size: 12px; padding: 6px 2px; }
+            .form-circle { width: 16px; height: 16px; font-size: 9px; }
+            .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
+            .score-inputs { width: 80px; }
         }
     </style>
 </head>
@@ -105,14 +116,15 @@
             <input type="text" id="login-name" placeholder="Dein Name">
             <label>PIN eingeben:</label>
             <div class="pin-container" id="login-pin-container">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <!-- Geändert zu type="text" für sofortige Maskierung via CSS -->
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
             </div>
             <button onclick="login()">Einloggen</button>
-            <span class="toggle-link" onclick="alert('Frage Herr Czojor nach einem neuen Passwort!')">Passwort vergessen?</span>
-            <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? Hier registrieren.</span>
+            <span class="toggle-link" onclick="alert('Frage die Administration nach einem neuen Passwort!')">Passwort vergessen?</span>
+            <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? <br>HIER REGISTRIEREN!</span>
         </div>
     </div>
 
@@ -156,7 +168,6 @@
     <div id="main-view" class="hidden">
         
         <div id="start-header-section" class="hidden">
-            <!-- News Box Container -->
             <div id="news-container" class="news-box hidden"></div>
         </div>
 
@@ -211,7 +222,7 @@
     </div>
 </div>
 
-<div class="version-number">v1.11</div>
+<div class="version-number">v1.13</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
