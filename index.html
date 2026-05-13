@@ -17,7 +17,7 @@
         .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
         
         /* News-Box Styling - Text jetzt mittig zentriert */
-        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 10px; font-weight: bold; text-align: center; }
+        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 30px; font-weight: bold; text-align: center; }
         
         /* Pfeile in Input-Feldern entfernen */
         input::-webkit-outer-spin-button,
@@ -52,7 +52,7 @@
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
         .matchup-row { display: flex; align-items: center; justify-content: center; width: 100%; gap: 5px; }
-        .team-name { flex: 1; font-weight: bold; font-size: 0.9em; line-height: 1.2; }
+        .team-name { flex: 1; font-weight: normal; font-size: 0.9em; line-height: 1.2; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
         
@@ -112,7 +112,7 @@
             </div>
             <button onclick="login()">Einloggen</button>
             <span class="toggle-link" onclick="alert('Frage Herr Czojor nach einem neuen Passwort!')">Passwort vergessen?</span>
-            <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? Hier registrieren.</span>
+            <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? <br>HIER REGISTRIEREN!</span>
         </div>
     </div>
 
@@ -211,7 +211,7 @@
     </div>
 </div>
 
-<div class="version-number">v1.11</div>
+<div class="version-number">v1.15</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
