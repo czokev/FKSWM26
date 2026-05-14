@@ -52,8 +52,8 @@
         .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
-        .matchup-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 15px; }
-        .team-name { flex: 1; font-weight: normal; font-size: 0.9em; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word; }
+        .matchup-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px; }
+        .team-name { flex: 1; min-width: 0; font-weight: normal; font-size: 0.9em; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
         
@@ -93,7 +93,8 @@
         .version-number { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #999; }
 
         @media (max-width: 400px) {
-            .team-name { font-size: 0.85em; }
+            .matchup-row { gap: 5px; }
+            .team-name { font-size: 0.82em; }
             th, td { font-size: 12px; padding: 6px 2px; }
             .form-circle { width: 16px; height: 16px; font-size: 9px; }
             .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
