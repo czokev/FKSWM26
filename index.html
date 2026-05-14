@@ -10,13 +10,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; hyphens: auto;}
         .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
         h1, h2 { color: #004494; text-align: center; }
         
         .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
         
-        /* News-Box Styling - Text jetzt mittig zentriert */
+        /* News-Box Styling */
         .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 30px; font-weight: bold; text-align: center; }
         
         /* Pfeile in Input-Feldern entfernen */
@@ -24,13 +24,13 @@
         input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
-        /* Auth Styles - Kontur von 1px auf 2px erhöht und etwas abgedunkelt */
+        /* Auth Styles */
         .auth-wrapper { width: 240px; margin: 0 auto; text-align: left; }
         .auth-wrapper label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.95em; }
         .auth-wrapper input[type="text"], .auth-wrapper select { width: 100%; padding: 12px; margin: 0; border: 2px solid #999; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
 
         .pin-container { display: flex; justify-content: space-between; margin-top: 5px; margin-bottom: 15px; gap: 13px; }
-        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #999; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; }
+        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #999; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; -webkit-text-security: disc; text-security: disc;}
 
         button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-sizing: border-box; }
         
@@ -39,7 +39,8 @@
         .btn-half { flex: 1 1 calc(50% - 5px); margin: 0; }
         .btn-full { flex: 1 1 100%; margin: 0; }
         .btn-ranking { background-color: #28a745; }
-        .btn-rules { background-color: #6c757d; }
+        /* Helleres Grau für Wichtige Infos */
+        .btn-rules { background-color: #adb5bd; color: #333; }
         
         .active-btn { outline: 4px solid #333; outline-offset: 2px; }
 
@@ -51,42 +52,52 @@
         .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
-        .matchup-row { display: flex; align-items: center; justify-content: center; width: 100%; gap: 5px; }
-        .team-name { flex: 1; font-weight: normal; font-size: 0.9em; line-height: 1.2; }
+        .matchup-row { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 15px; }
+        .team-name { flex: 1; font-weight: normal; font-size: 0.9em; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word; }
         .team-name.home { text-align: right; }
         .team-name.away { text-align: left; }
         
-        .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; min-width: 90px; }
+        .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; width: 90px; flex-shrink: 0; }
         .score-inputs input { width: 38px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: bold; }
 
         /* Dashboard & Tabelle */
         .table-wrapper { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
-        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
+        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; overflow-wrap: break-word; }
+        th:nth-child(1) { width: 12%; } /* Platz */
+        th:nth-child(2) { width: 32%; } /* Name */
+        th:nth-child(3) { width: 16%; } /* Klasse */
+        th:nth-child(4) { width: 25%; } /* Form */
+        th:nth-child(5) { width: 15%; text-align: right;} /* Punkte */
+        td:nth-child(5) { text-align: right; }
         
         /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
-        .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; }
+        .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; flex-shrink: 0; }
         .form-circle.points-3 { background-color: #28a745; } 
         .form-circle.points-1 { background-color: #ffc107; color: #333; } 
         .form-circle.points-0 { background-color: #dc3545; }
 
-        .rules-box { text-align: left; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; }
+        .rules-box { text-align: justify; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; hyphens: auto; }
         
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; min-height: 1.2em; }
         .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
         
-        #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; justify-content: center; box-sizing: border-box; z-index: 1000; }
+        /* Floating Save Bar - Design aktualisiert für gestapelte Nachrichten */
+        #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 10px 15px 15px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; box-sizing: border-box; z-index: 1000; }
         #floating-save-bar button { max-width: 600px; margin: 0; background-color: #28a745; }
 
-        /* Stil für Bonus-Eingaben (Text und Dropdown) */
+        /* Stil für Bonus-Eingaben */
         .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background-color: #fff; }
 
         .version-number { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #999; }
 
         @media (max-width: 400px) {
             .team-name { font-size: 0.85em; }
-            th, td { font-size: 13px; }
+            th, td { font-size: 12px; padding: 6px 2px; }
+            .form-circle { width: 16px; height: 16px; font-size: 9px; }
+            .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
+            .score-inputs { width: 80px; }
         }
     </style>
 </head>
@@ -102,16 +113,16 @@
         <h2>Anmeldung</h2>
         <div class="auth-wrapper">
             <label>Name:</label>
-            <input type="text" id="login-name" placeholder="Dein Name">
+            <input type="text" id="login-name" placeholder="Dein Name" maxlength="10">
             <label>PIN eingeben:</label>
             <div class="pin-container" id="login-pin-container">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
-                <input type="password" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
+                <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
             </div>
             <button onclick="login()">Einloggen</button>
-            <span class="toggle-link" onclick="alert('Frage Herr Czojor nach einem neuen Passwort!')">Passwort vergessen?</span>
+            <span class="toggle-link" onclick="alert('Frage die Administration nach einem neuen Passwort!')">Passwort vergessen?</span>
             <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? <br>HIER REGISTRIEREN!</span>
         </div>
     </div>
@@ -119,8 +130,8 @@
     <div id="register-view" class="hidden">
         <h2>Neu registrieren</h2>
         <div class="auth-wrapper">
-            <label>Name:</label>
-            <input type="text" id="reg-name" placeholder="Dein Name">
+            <label>Name (max. 10 Zeichen):</label>
+            <input type="text" id="reg-name" placeholder="Dein Name" maxlength="10">
             <label>Klasse:</label>
             <select id="reg-klasse">
                 <option value="Mitarbeiter*in">Mitarbeiter*in</option>
@@ -156,7 +167,6 @@
     <div id="main-view" class="hidden">
         
         <div id="start-header-section" class="hidden">
-            <!-- News Box Container -->
             <div id="news-container" class="news-box hidden"></div>
         </div>
 
@@ -164,7 +174,7 @@
             <button id="nav-tipps" class="btn-half" onclick="showSection('tipps')">⚽️ Spiele tippen</button>
             <button id="nav-bonus" class="btn-half" onclick="showSection('bonus')">⭐️ Bonusfragen</button>
             <button id="nav-dashboard" class="btn-full btn-ranking" onclick="showSection('dashboard')">🏆 Ranking ansehen</button>
-            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Spielregeln</button>
+            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
         </div>
         
         <div id="start-section" class="hidden">
@@ -198,20 +208,33 @@
         </div>
 
         <div id="regeln-section" class="hidden">
-            <h2>❗️ Spielregeln</h2>
+            <h2>❗️ Wichtige Infos</h2>
             <div id="regeln-content" class="rules-box">
                 Regeln werden geladen...
             </div>
+            
+            <!-- Feedback Bereich -->
+            <div id="feedback-area" style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;">
+                <h3 style="color: #004494; font-size: 1.1em; margin-bottom: 10px;">🗯️ Feedback</h3>
+                <p style="font-size: 0.9em; color: #666; margin-top: 0;">Dir gefällt die Seite? Oder du hast Fragen oder Anregungen? <br>Schreib es in die Box. <br>Dein Feedback wird gespeichert und kann jederzeit von dir angepasst oder gelöscht werden.</p>
+                <textarea id="feedback-text" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: vertical;" placeholder="Deine Nachricht..."></textarea>
+                <button id="btn-save-feedback" onclick="saveFeedback()" style="margin-top: 15px; background-color: #17a2b8;">Feedback abschicken</button>
+                
+                <!-- Lokale Nachrichten-Box direkt unter dem Button -->
+                <div id="feedback-message-box" style="text-align: center; margin-top: 10px; font-weight: bold; min-height: 1.2em;"></div>
+            </div>
         </div>
         
+        <!-- NEU: Floating Save Bar mit lokaler Nachrichten-Box -->
         <div id="floating-save-bar" class="hidden">
+            <div id="floating-message-box" style="text-align: center; font-weight: bold; min-height: 1.2em; margin-bottom: 8px; font-size: 14px;"></div>
             <button id="btn-save-all" onclick="saveAllTipps()">Tipps speichern</button>
             <button id="btn-save-bonus" class="hidden" onclick="saveBonusTipps()">Bonus speichern</button>
         </div>
     </div>
 </div>
 
-<div class="version-number">v1.15</div>
+<div class="version-number">v1.18</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -237,12 +260,23 @@
         document.getElementById(id).querySelectorAll('.pin-box').forEach(i => pin += i.value);
         return pin;
     }
+    
+    // Globale Nachrichten-Box (ganz oben)
     function showMessage(msg, isSuccess = false) {
         const box = document.getElementById('message-box');
         box.style.color = isSuccess ? '#28a745' : '#d9534f';
         box.innerText = msg;
         setTimeout(() => box.innerText = '', 5000);
     }
+    
+    // NEU: Lokale Nachrichten-Box für die Floating Bar
+    function showFloatingMessage(msg, isSuccess = false) {
+        const box = document.getElementById('floating-message-box');
+        box.style.color = isSuccess ? '#28a745' : '#d9534f';
+        box.innerText = msg;
+        setTimeout(() => box.innerText = '', 5000);
+    }
+
     function toggleAuthView() {
         document.getElementById('login-view').classList.toggle('hidden');
         document.getElementById('register-view').classList.toggle('hidden');
@@ -357,6 +391,11 @@
                     document.getElementById('regeln-content').innerHTML = "<p>Aktuell sind keine Regeln hinterlegt.</p>";
                 }
                 
+                // Feedback in Textfeld laden
+                if (result.userFeedback !== undefined) {
+                    document.getElementById('feedback-text').value = result.userFeedback;
+                }
+                
                 if (context === 'tipps') renderGames(result.spiele, result.userTipps);
                 if (context === 'dashboard') renderRanking(result.ranking);
                 if (context === 'bonus') renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
@@ -371,6 +410,12 @@
         const container = document.getElementById('games-container');
         container.innerHTML = '';
         spiele.forEach(s => {
+            
+            // Überspringe Spiele, bei denen die Mannschaften noch nicht feststehen
+            if (s.heim === "TBA" || s.auswaerts === "TBA") {
+                return; 
+            }
+
             const isL = s.status === 'gesperrt';
             const t = userTipps.find(ti => ti.spielId == s.id) || {tippH:'', tippA:'', punkte:''};
             
@@ -384,8 +429,9 @@
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
             
-            let badge = (isL && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
-            let res = (s.ergH !== "" && s.ergA !== "") ? `<div style="background:#004494; color:#fff; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
+            let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
+            let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
+            let res = hasFinalResult ? `<div style="background:#004494; color:#fff; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
 
             card.innerHTML = `${badge}
                 <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">
@@ -454,12 +500,14 @@
             const tr = document.createElement('tr');
             if (u.name === currentUser) tr.style.background = "#d4edda";
             let f = `<div class="form-container">`;
-            if (u.letzteSpiele) u.letzteSpiele.slice().reverse().forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
+            // Array wird chronologisch von links (älter) nach rechts (neuer) gezeichnet
+            if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
             tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold;">${u.punkte}</td>`;
             tbody.appendChild(tr);
         });
     }
 
+    // Geändert: Nutzt showFloatingMessage statt showMessage
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
@@ -472,11 +520,12 @@
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showMessage("Gespeichert!", true); loadData('tipps'); }
-        } catch (e) { showMessage("Fehler."); }
+            if (result.success) { showFloatingMessage("Gespeichert!", true); loadData('tipps'); }
+        } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Tipps speichern"; }
     }
 
+    // Geändert: Nutzt showFloatingMessage statt showMessage
     async function saveBonusTipps() {
         const btn = document.getElementById('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
@@ -492,9 +541,33 @@
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showMessage("Bonus gespeichert!", true); loadData('bonus'); }
-        } catch (e) { showMessage("Fehler."); }
+            if (result.success) { showFloatingMessage("Bonus gespeichert!", true); loadData('bonus'); }
+        } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Bonus speichern"; }
+    }
+    
+    function showFeedbackMessage(msg, isSuccess = false) {
+        const box = document.getElementById('feedback-message-box');
+        box.style.color = isSuccess ? '#28a745' : '#d9534f';
+        box.innerText = msg;
+        setTimeout(() => box.innerText = '', 5000);
+    }
+
+    async function saveFeedback() {
+        const btn = document.getElementById('btn-save-feedback');
+        const text = document.getElementById('feedback-text').value.trim();
+        
+        btn.disabled = true; btn.innerText = "Speichere...";
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveFeedback', name: currentUser, password: currentPassword, text: text }) });
+            const result = await res.json();
+            if (result.success) { 
+                showFeedbackMessage(result.message, true); 
+            } else {
+                showFeedbackMessage(result.error);
+            }
+        } catch (e) { showFeedbackMessage("Fehler beim Senden."); }
+        finally { btn.disabled = false; btn.innerText = "Feedback abschicken"; }
     }
 </script>
 </body>
