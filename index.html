@@ -62,10 +62,14 @@
 
         /* Dashboard & Tabelle */
         .table-wrapper { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
-        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
-        th:nth-child(5), td:nth-child(5) { text-align: right; }
-
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
+        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; overflow-wrap: break-word; }
+        th:nth-child(1) { width: 12%; } /* Platz */
+        th:nth-child(2) { width: 32%; } /* Name */
+        th:nth-child(3) { width: 16%; } /* Klasse */
+        th:nth-child(4) { width: 25%; } /* Form */
+        th:nth-child(5) { width: 15%; text-align: right;} /* Punkte */
+        td:nth-child(5) { text-align: right; }
         
         /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
@@ -213,7 +217,7 @@
             <!-- Feedback Bereich -->
             <div id="feedback-area" style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;">
                 <h3 style="color: #004494; font-size: 1.1em; margin-bottom: 10px;">🗯️ Feedback</h3>
-                <p style="font-size: 0.9em; color: #666; margin-top: 0;">Dir gefällt die Seite? Du hast Fragen oder Anregungen? <br>Schreib es in die Box. <br>Dein Feedback wird gespeichert und kann jederzeit von dir angepasst oder gelöscht werden.</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 0;">Dir gefällt die Seite?<br> Du hast Fragen oder Anregungen? <br>Schreib es in die Box.</p>
                 <textarea id="feedback-text" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: vertical;" placeholder="Deine Nachricht..."></textarea>
                 <button id="btn-save-feedback" onclick="saveFeedback()" style="margin-top: 15px; background-color: #17a2b8;">Feedback abschicken</button>
                 
@@ -231,7 +235,7 @@
     </div>
 </div>
 
-<div class="version-number">v1.18</div>
+<div id="version-display" class="version-number">v1.20</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -266,7 +270,7 @@
         setTimeout(() => box.innerText = '', 5000);
     }
     
-    // NEU: Lokale Nachrichten-Box für die Floating Bar
+    // Lokale Nachrichten-Box für die Floating Bar
     function showFloatingMessage(msg, isSuccess = false) {
         const box = document.getElementById('floating-message-box');
         box.style.color = isSuccess ? '#28a745' : '#d9534f';
@@ -298,8 +302,14 @@
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
             const result = await res.json();
             if (result.success) {
-                currentUser = n; currentPassword = p;
+                // FALLBACK: Wenn result.fullName fehlt, nimm den normalen Namen 'n'
+                currentUser = result.fullName || n; 
+                currentPassword = p;
                 document.getElementById('login-view').classList.add('hidden');
+                
+                // Versteckt die Versionsnummer beim Login
+                document.getElementById('version-display').classList.add('hidden'); 
+                
                 document.getElementById('main-view').classList.remove('hidden');
                 showSection('start');
             } else showMessage(result.error);
@@ -309,21 +319,31 @@
 
     async function register() {
         const n = document.getElementById('reg-name').value.trim();
+        // Hier prüfen, ob ein Emoji-Feld existiert, falls Sie es später einbauen:
+        const emojiElem = document.getElementById('reg-emoji');
+        const e = emojiElem ? emojiElem.value : ""; 
+        
         const p = getPinFromContainer('reg-pin-container'); 
         const k = document.getElementById('reg-klasse').value;
         if (!n || p.length !== 4) return showMessage("Eingaben unvollständig.");
         document.getElementById('auth-loader').classList.remove('hidden');
         try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, password: p, klasse: k }) });
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, emoji: e, password: p, klasse: k }) });
             const result = await res.json();
             if (result.success) {
-                currentUser = n; currentPassword = p;
-                document.getElementById('sum-name').innerText = n;
+                // FALLBACK: Nimm den Namen inkl. Emoji, oder den normalen Namen
+                currentUser = result.fullName || (e ? n + " " + e : n); 
+                currentPassword = p;
+                document.getElementById('sum-name').innerText = currentUser; 
                 document.getElementById('sum-pin').innerText = p;
                 document.getElementById('register-view').classList.add('hidden');
+                
+                // Versteckt die Versionsnummer bei der Registrierung
+                document.getElementById('version-display').classList.add('hidden'); 
+                
                 document.getElementById('summary-view').classList.remove('hidden');
             } else showMessage(result.error);
-        } catch (e) { showMessage("Fehler."); } 
+        } catch (err) { showMessage("Fehler."); } 
         finally { document.getElementById('auth-loader').classList.add('hidden'); }
     }
 
@@ -504,7 +524,7 @@
         });
     }
 
-    // Geändert: Nutzt showFloatingMessage statt showMessage
+    // SICHERHEIT: Fehler beim Speichern werden jetzt angezeigt (else-Block hinzugefügt)
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
@@ -517,12 +537,17 @@
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showFloatingMessage("Gespeichert!", true); loadData('tipps'); }
+            if (result.success) { 
+                showFloatingMessage("Gespeichert!", true); 
+                loadData('tipps'); 
+            } else {
+                showFloatingMessage(result.error || "Fehler beim Speichern.", false); 
+            }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Tipps speichern"; }
     }
 
-    // Geändert: Nutzt showFloatingMessage statt showMessage
+    // SICHERHEIT: Fehler beim Speichern werden jetzt angezeigt (else-Block hinzugefügt)
     async function saveBonusTipps() {
         const btn = document.getElementById('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
@@ -538,7 +563,12 @@
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showFloatingMessage("Bonus gespeichert!", true); loadData('bonus'); }
+            if (result.success) { 
+                showFloatingMessage("Bonus gespeichert!", true); 
+                loadData('bonus'); 
+            } else {
+                showFloatingMessage(result.error || "Fehler beim Speichern.", false);
+            }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Bonus speichern"; }
     }
