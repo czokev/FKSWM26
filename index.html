@@ -62,14 +62,10 @@
 
         /* Dashboard & Tabelle */
         .table-wrapper { width: 100%; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; table-layout: fixed; }
-        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; word-wrap: break-word; overflow-wrap: break-word; }
-        th:nth-child(1) { width: 12%; } /* Platz */
-        th:nth-child(2) { width: 32%; } /* Name */
-        th:nth-child(3) { width: 16%; } /* Klasse */
-        th:nth-child(4) { width: 25%; } /* Form */
-        th:nth-child(5) { width: 15%; text-align: right;} /* Punkte */
-        td:nth-child(5) { text-align: right; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
+        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
+        th:nth-child(5), td:nth-child(5) { text-align: right; }
+
         
         /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
