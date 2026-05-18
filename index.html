@@ -76,7 +76,11 @@
         .rules-box { text-align: justify; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; hyphens: auto; }
         
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; min-height: 1.2em; }
-        .loader { text-align: center; font-style: italic; color: #666; margin: 10px 0; }
+        
+        /* Neuer, animierter Ladebalken */
+        .loader { width: 100%; height: 8px; background-color: #e9ecef; border-radius: 4px; margin: 20px 0; overflow: hidden; position: relative; }
+        .loader::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: #004494; border-radius: 4px; animation: loadingBar 1.5s infinite ease-in-out; }
+        @keyframes loadingBar { 0% { left: -50%; } 100% { left: 100%; } }
         
         /* Floating Save Bar - Design aktualisiert für gestapelte Nachrichten */
         #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 10px 15px 15px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; box-sizing: border-box; z-index: 1000; }
@@ -158,7 +162,7 @@
         <button onclick="proceedToMain()">Weiter zum Spiel</button>
     </div>
 
-    <div id="auth-loader" class="loader hidden">Verbindung wird hergestellt...</div>
+    <div id="auth-loader" class="loader hidden"></div>
 
     <div id="main-view" class="hidden">
         
@@ -175,18 +179,18 @@
         
         <div id="start-section" class="hidden">
             <p style="text-align: center;">Wähle oben einen Bereich aus, um loszulegen.</p>
-            <div id="loader-start" class="loader hidden">Daten werden geladen...</div>
+            <div id="loader-start" class="loader hidden"></div>
         </div>
 
         <div id="tipps-section" class="hidden">
             <h2>⚽️ Spiele tippen</h2>
-            <div id="loader-tipps" class="loader hidden">Daten werden geladen...</div>
+            <div id="loader-tipps" class="loader hidden"></div>
             <div id="games-container"></div>
         </div>
 
         <div id="bonus-section" class="hidden">
             <h2>⭐️ Bonusfragen</h2>
-            <div id="loader-bonus" class="loader hidden">Daten werden geladen...</div>
+            <div id="loader-bonus" class="loader hidden"></div>
             <div id="bonus-container"></div>
         </div>
 
@@ -200,7 +204,7 @@
                     <tbody id="ranking-body"></tbody>
                 </table>
             </div>
-            <div id="loader-dashboard" class="loader hidden">Daten werden geladen...</div>
+            <div id="loader-dashboard" class="loader hidden"></div>
         </div>
 
         <div id="regeln-section" class="hidden">
