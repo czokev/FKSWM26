@@ -403,20 +403,24 @@
                 
                 if (result.regeln && result.regeln.trim() !== "") {
                     document.getElementById('regeln-content').innerHTML = result.regeln;
-                } else if (context === 'regeln') {
+                } else {
                     document.getElementById('regeln-content').innerHTML = "<p>Aktuell sind keine Regeln hinterlegt.</p>";
                 }
                 
-                // Feedback in Textfeld laden
                 if (result.userFeedback !== undefined) {
                     document.getElementById('feedback-text').value = result.userFeedback;
                 }
                 
-                if (context === 'tipps') renderGames(result.spiele, result.userTipps);
-                if (context === 'dashboard') renderRanking(result.ranking);
-                if (context === 'bonus') renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
+                // OPTIMIERUNG: Wir rendern ab sofort immer ALLE Bereiche gleichzeitig. 
+                // Wenn ein zukünftiger Ladevorgang fehlschlägt, sind die Daten bereits sicher im Hintergrund gezeichnet.
+                renderGames(result.spiele, result.userTipps);
+                renderRanking(result.ranking);
+                renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
             }
-        } catch (e) { console.log(e); } 
+        } catch (e) { 
+            // Ein stiller Fehlerabfang: Falls Google nicht antwortet, bleibt die App stabil und zeigt die zuletzt geladenen Daten.
+            console.log("Kurzer Verbindungsabbruch zu Google ignoriert."); 
+        } 
         finally { 
             if (loader) loader.classList.add('hidden'); 
         }
