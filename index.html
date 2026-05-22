@@ -124,7 +124,7 @@
         @media (max-width: 500px) {
             .matchup-row { gap: 5px; }
             .team-name { font-size: 0.85em; }
-            th, td { font-size: 12px; padding: 10px 2px; }
+            th, td { font-size: 12px; padding: 9px 2px; }
             .form-circle { width: 16px; height: 16px; font-size: 9px; }
             .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
             .score-inputs { min-width: 80px; }
@@ -497,12 +497,25 @@
     function renderRanking(ranking) {
         const tbody = document.getElementById('ranking-body');
         tbody.innerHTML = '';
-        ranking.sort((a, b) => b.punkte - a.punkte).forEach((u, i) => {
+        
+        // Zuerst nach Punkten absteigend sortieren
+        ranking.sort((a, b) => b.punkte - a.punkte);
+        
+        let currentRank = 1;
+        let lastPoints = null;
+
+        ranking.forEach((u, i) => {
+            // Wenn die Punkte vom Vordermann abweichen, bekommt der Nutzer den tatsächlichen Listen-Index + 1 (z.B. Platz 4 nach zwei 2. Plätzen)
+            if (u.punkte !== lastPoints) {
+                currentRank = i + 1;
+            }
+            lastPoints = u.punkte; // Aktuelle Punkte für den nächsten Durchlauf merken
+
             const tr = document.createElement('tr');
             if (u.name === currentUser) tr.style.background = "rgba(251, 121, 198, 0.15)";
             let f = `<div class="form-container">`;
             if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
-            tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+            tr.innerHTML = `<td>${currentRank}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
             tbody.appendChild(tr);
         });
     }
