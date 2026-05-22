@@ -64,7 +64,7 @@
 
         .table-wrapper { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
-        th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
+        th, td { padding: 10px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
         
         .form-container { display: flex; gap: 2px; }
         .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; flex-shrink: 0; }
@@ -124,9 +124,9 @@
         @media (max-width: 500px) {
             .matchup-row { gap: 5px; }
             .team-name { font-size: 0.85em; }
-            th, td { font-size: 12px; padding: 6px 2px; }
+            th, td { font-size: 12px; padding: 9px 2px; }
             .form-circle { width: 16px; height: 16px; font-size: 9px; }
-            .score-inputs input { width: 34px; height: 34px; font-size: 16px; }
+            .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
             .score-inputs { min-width: 80px; }
             
             .profil-grid {
@@ -795,8 +795,8 @@
             card.innerHTML = `${badge}
                 <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
-                <div class="score-inputs"><input type="number" inputmode="numeric" pattern="[0-9]*" id="heim_${s.id}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
-                <input type="number" inputmode="numeric" pattern="[0-9]*" id="auswaerts_${s.id}" value="${t.tippA}" ${isL?'disabled':''}></div>
+                <div class="score-inputs"><input type="number" id="heim_${s.id}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
+                <input type="number" id="auswaerts_${s.id}" value="${t.tippA}" ${isL?'disabled':''}></div>
                 <div class="team-name away">${s.auswaerts}</div></div>${res}`;
             container.appendChild(card);
         });
