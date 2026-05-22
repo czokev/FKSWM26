@@ -6,50 +6,51 @@
     <title>Frida_tippt_WM26</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽️</text></svg>">
     
-    <!-- Bibliothek für die Screenshot-Funktion -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; hyphens: auto;}
+        
         .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
-        h1, h2 { color: #004494; text-align: center; }
         
-        .header-image { max-height: 150px; width: auto; max-width: 100%; margin: 0 auto 20px auto; display: block; border-radius: 8px; }
+        .header-image { max-height: 200px; width: auto; max-width: 100%; margin: 0 auto 0px auto; display: block; border-radius: 8px; }
         
-        /* News-Box Styling */
-        .news-box { background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; border-radius: 4px; margin-bottom: 30px; font-weight: bold; text-align: center; }
+        h1, h2 { color: #0468BF; text-align: center; }
         
-        /* Pfeile in Input-Feldern entfernen */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .news-box { background-color: rgba(242, 137, 7, 0.1); color: #F28907; padding: 15px; border-left: 5px solid #F28907; border-radius: 4px; margin-bottom: 30px; font-weight: bold; text-align: center; }
+        
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
-        /* Auth Styles */
         .auth-wrapper { width: 240px; margin: 0 auto; text-align: left; }
         .auth-wrapper label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.95em; }
         .auth-wrapper input[type="text"], .auth-wrapper select { width: 100%; padding: 12px; margin: 0; border: 2px solid #999; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
 
         .pin-container { display: flex; justify-content: space-between; margin-top: 5px; margin-bottom: 15px; gap: 13px; }
-        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #999; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; -webkit-text-security: disc; text-security: disc;}
+        .pin-box { width: 50px; height: 50px; font-size: 24px; text-align: center; border: 2px solid #ccc; border-radius: 8px; background-color: #f9f9f9; box-sizing: border-box; -webkit-text-security: disc; text-security: disc;}
+        .pin-box:focus { border-color: #0468BF; outline: none; }
 
-        button { width: 100%; background-color: #004494; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-sizing: border-box; }
+        button { width: 100%; background-color: #0468BF; color: white; padding: 14px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; box-sizing: border-box; transition: opacity 0.2s; }
+        button:active { opacity: 0.8; }
         
-        /* Navigation Buttons Grid */
         .nav-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; margin-top: 10px; }
         .btn-half { flex: 1 1 calc(50% - 5px); margin: 0; }
         .btn-full { flex: 1 1 100%; margin: 0; }
-        .btn-ranking { background-color: #28a745; }
-        /* Helleres Grau für Wichtige Infos */
-        .btn-rules { background-color: #adb5bd; color: #333; }
         
-        .active-btn { outline: 4px solid #333; outline-offset: 2px; }
+        .btn-spiele  { background-color: #0468BF; color: white; }
+        .btn-bonus   { background-color: #F28907; color: white; }
+        .btn-ranking { background-color: #cdde10; color: #333; }
+        .btn-profil  { background-color: #F20F79; color: white; }
+        .btn-rules   { background-color: #FB79C6; color: #333; }
+        
+        .active-btn { outline: 3px solid #333; outline-offset: 2px; }
 
         .hidden { display: none !important; }
-        .toggle-link { text-align: center; color: #004494; text-decoration: underline; cursor: pointer; margin-top: 10px; display: block; }
+        .toggle-link { text-align: center; color: #0468BF; text-decoration: underline; cursor: pointer; margin-top: 10px; display: block; }
 
-        /* Game Cards */
         .game-card { border: 1px solid #e1e4e8; padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #fafbfc; position: relative; }
-        .game-card.tipped-game { background-color: #e8f5e9; border-color: #c8e6c9; }
+        .game-card.tipped-game { background-color: rgba(4, 104, 191, 0.05); border-color: rgba(4, 104, 191, 0.2); }
         .game-card.locked-game { background-color: #e9ecef; opacity: 0.8; border: 1px dashed #ccc; }
         
         .matchup-row { display: flex; align-items: center; justify-content: center; width: 100%; gap: 10px; }
@@ -59,45 +60,95 @@
         
         .score-inputs { display: flex; align-items: center; gap: 4px; justify-content: center; min-width: 90px; }
         .score-inputs input { width: 38px; height: 38px; text-align: center; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-weight: bold; }
+        .score-inputs input:focus { border-color: #0468BF; outline: none; }
 
-        /* Dashboard & Tabelle */
         .table-wrapper { width: 100%; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
         th, td { padding: 8px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
-        th:nth-child(5), td:nth-child(5) { text-align: right; }
         
-        /* Form Kreise */
         .form-container { display: flex; gap: 2px; }
         .form-circle { width: 18px; height: 18px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: white; background-color: #ccc; flex-shrink: 0; }
-        .form-circle.points-3 { background-color: #28a745; } 
-        .form-circle.points-1 { background-color: #ffc107; color: #333; } 
-        .form-circle.points-0 { background-color: #dc3545; }
+        .form-circle.points-3 { background-color: #0468BF; } 
+        .form-circle.points-1 { background-color: #F28907; color: #fff; } 
+        .form-circle.points-0 { background-color: #F20F79; } 
 
         .rules-box { text-align: justify; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.95em; line-height: 1.5; hyphens: auto; }
         
         #message-box { text-align: center; margin-bottom: 15px; font-weight: bold; min-height: 1.2em; }
         
-        /* Neuer, animierter Ladebalken */
-        .loader { width: 100%; height: 8px; background-color: #e9ecef; border-radius: 4px; margin: 20px 0; overflow: hidden; position: relative; }
-        .loader::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: #004494; border-radius: 4px; animation: loadingBar 1.5s infinite ease-in-out; }
+        .loader { width: 100%; height: 8px; background-color: rgba(4, 104, 191, 0.15); border-radius: 4px; margin: 20px 0; overflow: hidden; position: relative; }
+        .loader::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: #0468BF; border-radius: 4px; animation: loadingBar 1.5s infinite ease-in-out; }
         @keyframes loadingBar { 0% { left: -50%; } 100% { left: 100%; } }
         
-        /* Floating Save Bar - Design aktualisiert für gestapelte Nachrichten */
         #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 10px 15px 15px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; box-sizing: border-box; z-index: 1000; }
-        #floating-save-bar button { max-width: 600px; margin: 0; background-color: #28a745; }
+        #floating-save-bar button { max-width: 600px; margin: 0; background-color: #0468BF; }
 
-        /* Stil für Bonus-Eingaben */
         .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background-color: #fff; }
+        .bonus-input:focus { border-color: #0468BF; outline: none; }
 
         .version-number { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #999; }
 
-        @media (max-width: 400px) {
+        .profil-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        .chart-box {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; 
+        }
+
+        .chart-container-top {
+            position: relative;
+            width: 100%;
+            height: 110px;
+        }
+
+        .kennzahlen-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .kennzahlen-container > div {
+            flex: 1 1 20%;
+        }
+
+        @media (max-width: 500px) {
             .matchup-row { gap: 5px; }
             .team-name { font-size: 0.85em; }
             th, td { font-size: 12px; padding: 6px 2px; }
             .form-circle { width: 16px; height: 16px; font-size: 9px; }
             .score-inputs input { width: 34px; height: 34px; font-size: 14px; }
             .score-inputs { min-width: 80px; }
+            
+            .profil-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container-top {
+                height: 180px; 
+            }
+            
+            .kennzahlen-container {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            .summary-box strong {
+                font-size: 1.7em !important;
+            }
+            .summary-box div {
+                font-size: 0.9em !important;
+            }
         }
     </style>
 </head>
@@ -105,7 +156,7 @@
 
 <div class="container">
     <img src="header.jpg" alt="WM-Tippspiel Header" class="header-image" onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block';">
-    <h1 id="fallback-title" style="display:none;">WM-Tippspiel</h1>
+    <h1 id="fallback-title" style="display:none; margin-top: 0;">WM-Tippspiel</h1>
 
     <div id="message-box"></div>
 
@@ -122,7 +173,7 @@
                 <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
             </div>
             <button onclick="login()">Einloggen</button>
-            <span class="toggle-link" onclick="alert('Frage Herr Czojor nach einem neuen Passwort!')">Passwort vergessen?</span>
+            <span class="toggle-link" onclick="alert('Frage Herr Czojor nach deinem Passwort!')">Passwort vergessen?</span>
             <span class="toggle-link" onclick="toggleAuthView()" style="margin-top: 20px;">Noch kein Konto? <br>HIER REGISTRIEREN!</span>
         </div>
     </div>
@@ -134,11 +185,9 @@
             <input type="text" id="reg-name" placeholder="Dein Name" maxlength="10">
             <label>Klasse:</label>
             <select id="reg-klasse">
-                <option value="Mitarbeiter*in">Mitarbeiter*in</option>
-                <option value="A1a">A1a</option><option value="A1b">A1b</option>
-                <option value="A2a">A2a</option><option value="A2b">A2b</option>
-                <option value="A3a">A3a</option><option value="A3b">A3b</option>
+                <option value="">Lade Klassen aus Tabelle...</option>
             </select>
+            
             <label>PIN (4 Zahlen):</label>
             <div class="pin-container" id="reg-pin-container">
                 <input type="text" inputmode="numeric" class="pin-box" maxlength="1" oninput="handlePinInput(this)" onkeydown="handlePinBackspace(this, event)">
@@ -152,29 +201,29 @@
     </div>
 
     <div id="summary-view" class="hidden">
-        <div id="credentials-box" class="summary-box" style="background: #d4edda; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #c3e6cb;">
-            <h3 style="margin-top: 0; color: #155724;">Erfolgreich!</h3>
-            <p style="color: #155724;">Deine Zugangsdaten für das Tippspiel:</p>
-            <p style="color: #155724; font-size: 1.1em;"><strong>Name:</strong> <span id="sum-name"></span><br>
+        <div id="credentials-box" class="summary-box" style="background: rgba(4, 104, 191, 0.05); padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid rgba(4, 104, 191, 0.2);">
+            <h3 style="margin-top: 0; color: #0468BF;">Erfolgreich!</h3>
+            <p style="color: #333;">Deine Zugangsdaten für das Tippspiel:</p>
+            <p style="color: #0468BF; font-size: 1.1em;"><strong>Name:</strong> <span id="sum-name"></span><br>
             <strong>PIN:</strong> <span id="sum-pin" style="letter-spacing: 2px;"></span></p>
         </div>
-        <button onclick="downloadCredentials()" style="background-color: #17a2b8;">📸 Als Foto speichern</button>
+        <button onclick="downloadCredentials()" style="background-color: #F28907;">📸 Als Foto speichern</button>
         <button onclick="proceedToMain()">Weiter zum Spiel</button>
     </div>
 
     <div id="auth-loader" class="loader hidden"></div>
 
     <div id="main-view" class="hidden">
-        
         <div id="start-header-section" class="hidden">
             <div id="news-container" class="news-box hidden"></div>
         </div>
 
         <div class="nav-buttons">
-            <button id="nav-tipps" class="btn-half" onclick="showSection('tipps')">⚽️ Spiele tippen</button>
-            <button id="nav-bonus" class="btn-half" onclick="showSection('bonus')">⭐️ Bonusfragen</button>
-            <button id="nav-dashboard" class="btn-full btn-ranking" onclick="showSection('dashboard')">🏆 Ranking ansehen</button>
-            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
+            <button id="nav-tipps" class="btn-half btn-spiele" onclick="showSection('tipps')">⚽️ Spiele</button>
+            <button id="nav-bonus" class="btn-half btn-bonus" onclick="showSection('bonus')">⭐️ Bonus</button>
+            <button id="nav-dashboard" class="btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
+            <button id="nav-profil" class="btn-half btn-profil" onclick="showSection('profil')">🚀 Profil</button>
+            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Infos</button>
         </div>
         
         <div id="start-section" class="hidden">
@@ -198,34 +247,64 @@
             <h2>🏆 Ranking</h2>
             <div id="loader-dashboard" class="loader hidden"></div>
             <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>Platz</th><th>Name</th><th>Klasse</th><th>Form</th><th>Punkte</th></tr>
+                <table id="ranking-table">
+                    <thead id="ranking-head">
+                        <tr><th>Platz</th><th>Name</th><th>Klasse</th><th>Form</th><th style="text-align:right;">Punkte</th></tr>
                     </thead>
                     <tbody id="ranking-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="regeln-section" class="hidden">
-            <h2>❗️ Wichtige Infos</h2>
-            <div id="regeln-content" class="rules-box">
-                Regeln werden geladen...
+        <div id="profil-section" class="hidden">
+            <h2>🚀 Profil</h2>
+            <div id="loader-profil" class="loader hidden"></div>
+            
+            <div class="summary-box" style="background: #fff; padding: 25px 15px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <div class="kennzahlen-container">
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Platz</div><strong id="profil-platz-display" style="font-size: 2.5em; color: #becf05;">-</strong></div>
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Punkte</div><strong id="profil-punkte-display" style="font-size: 2.5em; color: #0468BF;">-</strong></div>
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Ø Pkt / Spiel</div><strong id="profil-schnitt-display" style="font-size: 2.5em; color: #F20F79;">-</strong></div>
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">getippte Spiele</div><strong id="profil-spiele-display" style="font-size: 2.5em; color: #f7b03d;">-</strong></div>
+                </div>
             </div>
             
-            <!-- Feedback Bereich -->
-            <div id="feedback-area" style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;">
-                <h3 style="color: #004494; font-size: 1.1em; margin-bottom: 10px;">🗯️ Feedback</h3>
-                <p style="font-size: 0.9em; color: #666; margin-top: 0;">Dir gefällt die Seite?<br> Du hast Fragen oder Anregungen? <br>Schreib es in die Box.</p>
-                <textarea id="feedback-text" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: vertical;" placeholder="Deine Nachricht..."></textarea>
-                <button id="btn-save-feedback" onclick="saveFeedback()" style="margin-top: 15px; background-color: #17a2b8;">Feedback abschicken</button>
+            <div class="profil-grid">
+                <div class="chart-box">
+                    <h4 style="margin-top: 0; margin-bottom: 10px; text-align: center; color: #333; font-size: 0.75em; text-transform: uppercase;">Punkte-Verlauf</h4>
+                    <div class="chart-container-top">
+                        <canvas id="pointsHistoryChart"></canvas>
+                    </div>
+                </div>
                 
-                <!-- Lokale Nachrichten-Box direkt unter dem Button -->
+                <div class="chart-box">
+                    <h4 style="margin-top: 0; margin-bottom: 5px; text-align: center; color: #333; font-size: 0.75em; text-transform: uppercase;">Punkte-Verteilung</h4>
+                    <div class="chart-container-top">
+                        <canvas id="pointsPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-box" style="margin-bottom: 15px;">
+                <h4 style="margin-top: 0; text-align: center; color: #333; font-size: 0.8em; text-transform: uppercase;">Platzierungs-Trend</h4>
+                <div style="position: relative; height: 200px; width: 100%;">
+                    <canvas id="rankingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="regeln-section" class="hidden">
+            <h2>❗️ Wichtige Infos</h2>
+            <div id="regeln-content" class="rules-box">Regeln werden geladen...</div>
+            
+            <div id="feedback-area" style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;">
+                <h3 style="color: #0468BF; font-size: 1.1em; margin-bottom: 10px;">🗯️ Feedback</h3>
+                <textarea id="feedback-text" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 15px; resize: vertical;" placeholder="Deine Nachricht..."></textarea>
+                <button id="btn-save-feedback" onclick="saveFeedback()" style="margin-top: 15px; background-color: #0468BF;">Feedback abschicken</button>
                 <div id="feedback-message-box" style="text-align: center; margin-top: 10px; font-weight: bold; min-height: 1.2em;"></div>
             </div>
         </div>
         
-        <!-- NEU: Floating Save Bar mit lokaler Nachrichten-Box -->
         <div id="floating-save-bar" class="hidden">
             <div id="floating-message-box" style="text-align: center; font-weight: bold; min-height: 1.2em; margin-bottom: 8px; font-size: 14px;"></div>
             <button id="btn-save-all" onclick="saveAllTipps()">Tipps speichern</button>
@@ -234,12 +313,18 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.22</div>
+<div id="version-display" class="version-number">v2.11</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
-    let currentUser = "";
-    let currentPassword = "";
+    
+    let currentUser = "", currentPassword = "";
+    
+    let rankingChartInstance = null;
+    let pointsPieChartInstance = null; 
+    let pointsHistoryChartInstance = null; 
+
+    Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
     function handlePinInput(elem) {
         elem.value = elem.value.replace(/[^0-9]/g, ''); 
@@ -261,18 +346,16 @@
         return pin;
     }
     
-    // Globale Nachrichten-Box (ganz oben)
     function showMessage(msg, isSuccess = false) {
         const box = document.getElementById('message-box');
-        box.style.color = isSuccess ? '#28a745' : '#d9534f';
+        box.style.color = isSuccess ? '#0468BF' : '#F20F79';
         box.innerText = msg;
         setTimeout(() => box.innerText = '', 5000);
     }
     
-    // Lokale Nachrichten-Box für die Floating Bar
     function showFloatingMessage(msg, isSuccess = false) {
         const box = document.getElementById('floating-message-box');
-        box.style.color = isSuccess ? '#28a745' : '#d9534f';
+        box.style.color = isSuccess ? '#0468BF' : '#F20F79';
         box.innerText = msg;
         setTimeout(() => box.innerText = '', 5000);
     }
@@ -292,6 +375,24 @@
         });
     }
 
+    async function loadKlassenDynamisch() {
+        try {
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getKlassen' }) });
+            const result = await res.json();
+            if (result.success) {
+                const select = document.getElementById('reg-klasse');
+                select.innerHTML = ''; 
+                result.klassen.forEach(k => {
+                    let opt = document.createElement('option');
+                    opt.value = k; opt.innerText = k;
+                    select.appendChild(opt);
+                });
+            }
+        } catch (e) { console.log("Klassen-Ladefehler."); }
+    }
+
+    window.onload = loadKlassenDynamisch;
+
     async function login() {
         const n = document.getElementById('login-name').value.trim();
         const p = getPinFromContainer('login-pin-container'); 
@@ -301,14 +402,9 @@
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
             const result = await res.json();
             if (result.success) {
-                // FALLBACK: Wenn result.fullName fehlt, nimm den normalen Namen 'n'
-                currentUser = result.fullName || n; 
-                currentPassword = p;
+                currentUser = result.fullName || n; currentPassword = p;
                 document.getElementById('login-view').classList.add('hidden');
-                
-                // Versteckt die Versionsnummer beim Login
                 document.getElementById('version-display').classList.add('hidden'); 
-                
                 document.getElementById('main-view').classList.remove('hidden');
                 showSection('start');
             } else showMessage(result.error);
@@ -318,28 +414,19 @@
 
     async function register() {
         const n = document.getElementById('reg-name').value.trim();
-        // Hier prüfen, ob ein Emoji-Feld existiert, falls Sie es später einbauen:
-        const emojiElem = document.getElementById('reg-emoji');
-        const e = emojiElem ? emojiElem.value : ""; 
-        
         const p = getPinFromContainer('reg-pin-container'); 
         const k = document.getElementById('reg-klasse').value;
-        if (!n || p.length !== 4) return showMessage("Eingaben unvollständig.");
+        if (!n || p.length !== 4 || !k) return showMessage("Eingaben unvollständig.");
         document.getElementById('auth-loader').classList.remove('hidden');
         try {
-            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, emoji: e, password: p, klasse: k }) });
+            const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, password: p, klasse: k }) });
             const result = await res.json();
             if (result.success) {
-                // FALLBACK: Nimm den Namen inkl. Emoji, oder den normalen Namen
-                currentUser = result.fullName || (e ? n + " " + e : n); 
-                currentPassword = p;
+                currentUser = result.fullName || n; currentPassword = p;
                 document.getElementById('sum-name').innerText = currentUser; 
                 document.getElementById('sum-pin').innerText = p;
                 document.getElementById('register-view').classList.add('hidden');
-                
-                // Versteckt die Versionsnummer bei der Registrierung
                 document.getElementById('version-display').classList.add('hidden'); 
-                
                 document.getElementById('summary-view').classList.remove('hidden');
             } else showMessage(result.error);
         } catch (err) { showMessage("Fehler."); } 
@@ -353,21 +440,16 @@
     }
 
     function showSection(id) {
-        ['start', 'tipps', 'bonus', 'dashboard', 'regeln'].forEach(s => {
+        ['start', 'tipps', 'bonus', 'dashboard', 'profil', 'regeln'].forEach(s => {
             document.getElementById(s + '-section').classList.add('hidden');
-            if (document.getElementById('nav-' + s)) {
-                document.getElementById('nav-' + s).classList.remove('active-btn');
-            }
+            if (document.getElementById('nav-' + s)) document.getElementById('nav-' + s).classList.remove('active-btn');
         });
         
         document.getElementById(id + '-section').classList.remove('hidden');
         if (id !== 'start') document.getElementById('nav-' + id).classList.add('active-btn');
 
-        if (id === 'start') {
-            document.getElementById('start-header-section').classList.remove('hidden');
-        } else {
-            document.getElementById('start-header-section').classList.add('hidden');
-        }
+        if (id === 'start') document.getElementById('start-header-section').classList.remove('hidden');
+        else document.getElementById('start-header-section').classList.add('hidden');
 
         const bar = document.getElementById('floating-save-bar');
         if (id === 'tipps') {
@@ -388,75 +470,311 @@
     async function loadData(context) {
         const loader = document.getElementById('loader-' + context);
         if (loader) loader.classList.remove('hidden');
-        
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getData', name: currentUser }) });
             const result = await res.json();
             if (result.success) {
-                const news = document.getElementById('news-container');
                 if (context === 'start' && result.news && result.news.trim() !== "") {
-                    news.innerHTML = result.news; 
-                    news.classList.remove('hidden');
-                } else if (context === 'start') {
-                    news.classList.add('hidden');
+                    const news = document.getElementById('news-container');
+                    news.innerHTML = result.news; news.classList.remove('hidden');
                 }
                 
-                if (result.regeln && result.regeln.trim() !== "") {
-                    document.getElementById('regeln-content').innerHTML = result.regeln;
-                } else {
-                    document.getElementById('regeln-content').innerHTML = "<p>Aktuell sind keine Regeln hinterlegt.</p>";
-                }
+                if (result.regeln && result.regeln.trim() !== "") document.getElementById('regeln-content').innerHTML = result.regeln;
+                if (result.userFeedback !== undefined) document.getElementById('feedback-text').value = result.userFeedback;
                 
-                if (result.userFeedback !== undefined) {
-                    document.getElementById('feedback-text').value = result.userFeedback;
-                }
-                
-                // OPTIMIERUNG: Wir rendern ab sofort immer ALLE Bereiche gleichzeitig. 
-                // Wenn ein zukünftiger Ladevorgang fehlschlägt, sind die Daten bereits sicher im Hintergrund gezeichnet.
                 renderGames(result.spiele, result.userTipps);
                 renderRanking(result.ranking);
                 renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
+                renderProfil(result.myRankingHistory, result.myCurrentRank, result.myCurrentPoints, result.spiele, result.userTipps, result.userBonusTipps);
             }
-        } catch (e) { 
-            // Ein stiller Fehlerabfang: Falls Google nicht antwortet, bleibt die App stabil und zeigt die zuletzt geladenen Daten.
-            console.log("Kurzer Verbindungsabbruch zu Google ignoriert."); 
-        } 
-        finally { 
-            if (loader) loader.classList.add('hidden'); 
-        }
+        } catch (e) { console.log("Verbindungsproblem."); } 
+        finally { if (loader) loader.classList.add('hidden'); }
+    }
+
+    function renderRanking(ranking) {
+        const tbody = document.getElementById('ranking-body');
+        tbody.innerHTML = '';
+        ranking.sort((a, b) => b.punkte - a.punkte).forEach((u, i) => {
+            const tr = document.createElement('tr');
+            if (u.name === currentUser) tr.style.background = "rgba(251, 121, 198, 0.15)";
+            let f = `<div class="form-container">`;
+            if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
+            tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderProfil(history, rank, points, spiele, userTipps, bonusTipps) {
+        document.getElementById('profil-platz-display').innerText = rank;
+        document.getElementById('profil-punkte-display').innerText = points;
+
+        let totalGamesInTournament = spiele.length;
+        let playedGames = userTipps.filter(t => t.tippH !== "" || t.tippA !== "").length;
+        document.getElementById('profil-spiele-display').innerText = playedGames + "/" + totalGamesInTournament;
+
+        let finishedGamesCount = spiele.filter(s => s.ergH !== "" && s.ergA !== "").length;
+        let avgPoints = finishedGamesCount > 0 ? (points / finishedGamesCount).toFixed(1) : "0.0";
+        document.getElementById('profil-schnitt-display').innerText = avgPoints;
+
+        let exakt = 0, tendenz = 0, falsch = 0;
+        let finishedGames = spiele.filter(s => s.ergH !== "" && s.ergA !== "");
+        
+        let pointHistoryData = [];
+        let pointHistoryLabels = [];
+
+        finishedGames.forEach((s, index) => {
+            let t = userTipps.find(ti => ti.spielId == s.id);
+            let earned = 0;
+            let visualValue = 0; 
+            
+            if (t && t.punkte !== "") {
+                earned = t.punkte;
+                if (earned === 3) { exakt++; visualValue = 2; }
+                else if (earned === 1) { tendenz++; visualValue = 1; }
+                else { falsch++; visualValue = 0; }
+            } else {
+                falsch++; 
+                visualValue = 0;
+            }
+            pointHistoryData.push(visualValue);
+            pointHistoryLabels.push('Spiel ' + (index + 1));
+        });
+
+        const ctxPointsHistory = document.getElementById('pointsHistoryChart').getContext('2d');
+        if (pointsHistoryChartInstance) pointsHistoryChartInstance.destroy();
+
+        pointsHistoryChartInstance = new Chart(ctxPointsHistory, {
+            type: 'line',
+            data: {
+                labels: pointHistoryLabels.length > 0 ? pointHistoryLabels : ['Start'],
+                datasets: [{
+                    label: 'Punkte',
+                    data: pointHistoryData.length > 0 ? pointHistoryData : [0],
+                    showLine: false, 
+                    pointRadius: 7,  
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 9,
+                    pointHoverBorderColor: '#ffffff',
+                    pointBackgroundColor: function(context) {
+                        let val = context.raw;
+                        if (val === 2) return '#0468BF'; 
+                        if (val === 1) return '#F28907'; 
+                        return '#F20F79';                
+                    },
+                    pointHoverBackgroundColor: function(context) {
+                        let val = context.raw;
+                        if (val === 2) return '#0468BF';
+                        if (val === 1) return '#F28907';
+                        return '#F20F79';
+                    },
+                    clip: false
+                }]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                layout: { padding: { top: 15, bottom: 15, left: 5, right: 10 } }, 
+                interaction: { intersect: false, mode: 'index' },
+                scales: { 
+                    y: { 
+                        min: 0, 
+                        max: 2, 
+                        ticks: { 
+                            autoSkip: false, 
+                            stepSize: 1, 
+                            padding: 15,
+                            font: { weight: 'normal', size: 12 },
+                            color: function(context) {
+                                if (context.tick && context.tick.value === 2) return '#0468BF'; 
+                                if (context.tick && context.tick.value === 1) return '#F28907'; 
+                                if (context.tick && context.tick.value === 0) return '#F20F79'; 
+                                return 'transparent';
+                            },
+                            callback: function(value) {
+                                if (value === 0) return '0 Pkt';
+                                if (value === 1) return '1 Pkt';
+                                if (value === 2) return '3 Pkt';
+                                return null;
+                            }
+                        },
+                        border: { display: false },
+                        grid: { 
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawTicks: false,
+                            borderDash: [5, 5] 
+                        } 
+                    }, 
+                    x: { 
+                        display: true, 
+                        ticks: { display: false }, 
+                        border: { display: false },
+                        grid: { 
+                            display: true, 
+                            color: 'rgba(0, 0, 0, 0.05)', 
+                            drawTicks: false
+                        }
+                    } 
+                },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: function(context) {
+                            if (!context.tooltip.dataPoints) return 'rgba(0,0,0,0.8)';
+                            let val = context.tooltip.dataPoints[0].raw;
+                            if (val === 2) return 'rgba(4, 104, 191, 0.9)'; 
+                            if (val === 1) return 'rgba(242, 137, 7, 0.9)'; 
+                            return 'rgba(242, 15, 121, 0.9)';               
+                        },
+                        titleColor: '#fff', bodyColor: '#fff', padding: 10, displayColors: false,
+                        callbacks: { 
+                            label: function(context) { 
+                                let realPoints = context.parsed.y === 2 ? 3 : context.parsed.y;
+                                return realPoints + ' Punkte'; 
+                            } 
+                        }
+                    }
+                }
+            }
+        });
+
+        if (pointsPieChartInstance) pointsPieChartInstance.destroy();
+        pointsPieChartInstance = new Chart(document.getElementById('pointsPieChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Exakt', 'Tendenz', 'Falsch'],
+                datasets: [{
+                    data: [exakt, tendenz, falsch],
+                    backgroundColor: ['#0468BF', '#F28907', '#F20F79'], 
+                    bordercolor: '#ffffff',
+                    borderWidth: 3, 
+                    cutout: '65%', 
+                    borderRadius: 4, 
+                    spacing: 2 
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                layout: { padding: 0 },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return ' ' + context.label + ': ' + context.parsed; }
+                        }
+                    }
+                } 
+            }
+        });
+
+        const ctxRank = document.getElementById('rankingChart').getContext('2d');
+        if (rankingChartInstance) rankingChartInstance.destroy();
+
+        let gradient = ctxRank.createLinearGradient(0, 0, 0, 200); 
+        gradient.addColorStop(0, 'rgba(242, 15, 121, 0.4)'); 
+        gradient.addColorStop(1, 'rgba(242, 15, 121, 0.0)');
+
+        let totalPlayers = 50; 
+        let dynamicStep = 1;
+        if (totalPlayers >= 50) dynamicStep = 10;
+        else if (totalPlayers >= 15) dynamicStep = 5;
+
+        rankingChartInstance = new Chart(ctxRank, {
+            type: 'line',
+            data: {
+                labels: history ? history.map((_, i) => 'Spiel ' + (i + 1)) : ['Start'],
+                datasets: [{
+                    label: 'Platzierung',
+                    data: history && history.length > 0 ? history : [1],
+                    borderColor: '#F20F79', 
+                    backgroundColor: gradient,
+                    borderWidth: 3, 
+                    tension: 0.4, 
+                    fill: 'start', 
+                    pointRadius: 4,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#F20F79',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#F20F79',
+                    pointHoverBorderColor: '#ffffff',
+                    clip: false
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                layout: { padding: { top: 20, bottom: 5, left: 10, right: 10 } },
+                interaction: { intersect: false, mode: 'index' },
+                scales: { 
+                    y: { 
+                        reverse: true, 
+                        min: 0.5, 
+                        max: totalPlayers + 2, 
+                        ticks: { 
+                            autoSkip: false, 
+                            stepSize: dynamicStep, 
+                            padding: 15, 
+                            color: '#555',
+                            font: { weight: 'normal', size: 12 },
+                            callback: function(value) {
+                                if (value === 1 || value % dynamicStep === 0) return value;
+                                return null;
+                            }
+                        },
+                        border: { display: false },
+                        grid: { 
+                            display: true,
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawTicks: false,
+                            borderDash: [5, 5],
+                            stepSize: 1 
+                        } 
+                    },
+                    x: { 
+                        display: true, 
+                        ticks: { display: false }, 
+                        border: { display: false },
+                        grid: { 
+                            display: true, 
+                            color: 'rgba(0, 0, 0, 0.05)', 
+                            drawTicks: false
+                        }
+                    } 
+                },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(242, 15, 121, 0.9)',
+                        titleColor: '#fff', bodyColor: '#fff', padding: 10, displayColors: false,
+                        callbacks: { label: function(context) { return 'Platz: ' + context.parsed.y; } }
+                    }
+                }
+            }
+        });
     }
 
     function renderGames(spiele, userTipps) {
         const container = document.getElementById('games-container');
         container.innerHTML = '';
         spiele.forEach(s => {
-            
-            // Überspringe Spiele, bei denen die Mannschaften noch nicht feststehen
-            if (s.heim === "TBA" || s.auswaerts === "TBA") {
-                return; 
-            }
-
+            if (s.heim === "TBA" || s.auswaerts === "TBA") return; 
             const isL = s.status === 'gesperrt';
             const t = userTipps.find(ti => ti.spielId == s.id) || {tippH:'', tippA:'', punkte:''};
-            
             let terminStr = "";
             if (s.zeit) {
                 const d = new Date(s.zeit);
-                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + 
-                            d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
             }
-
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
-            
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
             let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
-            let res = hasFinalResult ? `<div style="background:#004494; color:#fff; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
+            let res = hasFinalResult ? `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
 
             card.innerHTML = `${badge}
-                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">
-                    <strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}
-                </div>
+                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
                 <div class="score-inputs"><input type="number" id="heim_${s.id}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
                 <input type="number" id="auswaerts_${s.id}" value="${t.tippA}" ${isL?'disabled':''}></div>
@@ -471,63 +789,31 @@
         fragen.forEach(f => {
             const isL = f.status === 'gesperrt';
             const t = userTipps.find(ti => ti.frageId == f.id) || {tipp:'', punkte:''};
-            
-            let terminStr = "Keine Frist gesetzt";
+            let terminStr = "Keine Frist";
             if (f.zeit) {
                 const d = new Date(f.zeit);
-                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + 
-                            d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+                terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
             }
-
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tipp !== '' ? ' tipped-game' : ''));
-            
             let badge = "";
             if (isL && t.punkte !== '') {
-                let bgCol = (t.punkte > 0) ? '#28a745' : '#dc3545';
-                badge = `<div class="form-circle" style="background-color: ${bgCol}; position:absolute; top:8px; right:8px; width:28px; height:28px; color:white; font-size:14px;">${t.punkte}</div>`;
+                badge = `<div class="form-circle" style="background-color: ${t.punkte > 0 ? '#0468BF' : '#F20F79'}; position:absolute; top:8px; right:8px; width:28px; height:28px; color:white; font-size:14px;">${t.punkte}</div>`;
             }
-            
             let inputElementHtml = "";
             if (f.auswahl && f.auswahl.trim() !== "") {
                 let options = f.auswahl.split(',').map(opt => opt.trim());
-                inputElementHtml = `<select id="bonus_${f.id}" class="bonus-input" style="text-align-last: center;" ${isL?'disabled':''}>`;
-                inputElementHtml += `<option value="">Bitte wählen...</option>`;
-                options.forEach(opt => {
-                    let isSelected = (t.tipp === opt) ? "selected" : "";
-                    inputElementHtml += `<option value="${opt}" ${isSelected}>${opt}</option>`;
-                });
+                inputElementHtml = `<select id="bonus_${f.id}" class="bonus-input" style="text-align-last: center;" ${isL?'disabled':''}><option value="">Bitte wählen...</option>`;
+                options.forEach(opt => { inputElementHtml += `<option value="${opt}" ${t.tipp === opt ? "selected" : ""}>${opt}</option>`; });
                 inputElementHtml += `</select>`;
             } else {
                 inputElementHtml = `<input type="text" id="bonus_${f.id}" class="bonus-input" value="${t.tipp}" ${isL?'disabled':''} placeholder="Antwort...">`;
             }
-
-            card.innerHTML = `${badge}
-                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">
-                    ${terminStr} ${isL ? '🔒' : ''}
-                </div>
-                <div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>
-                ${inputElementHtml}
-            `;
+            card.innerHTML = `${badge}<div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">${terminStr} ${isL ? '🔒' : ''}</div><div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>${inputElementHtml}`;
             container.appendChild(card);
         });
     }
 
-    function renderRanking(ranking) {
-        const tbody = document.getElementById('ranking-body');
-        tbody.innerHTML = '';
-        ranking.sort((a, b) => b.punkte - a.punkte).forEach((u, i) => {
-            const tr = document.createElement('tr');
-            if (u.name === currentUser) tr.style.background = "#d4edda";
-            let f = `<div class="form-container">`;
-            // Array wird chronologisch von links (älter) nach rechts (neuer) gezeichnet
-            if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
-            tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold;">${u.punkte}</td>`;
-            tbody.appendChild(tr);
-        });
-    }
-
-    // SICHERHEIT: Fehler beim Speichern werden jetzt angezeigt (else-Block hinzugefügt)
     async function saveAllTipps() {
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
@@ -540,62 +826,45 @@
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tipps }) });
             const result = await res.json();
-            if (result.success) { 
-                showFloatingMessage("Gespeichert!", true); 
-                loadData('tipps'); 
-            } else {
-                showFloatingMessage(result.error || "Fehler beim Speichern.", false); 
-            }
+            if (result.success) { showFloatingMessage("Gespeichert!", true); loadData('tipps'); } 
+            else { showFloatingMessage(result.error || "Fehler beim Speichern.", false); }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Tipps speichern"; }
     }
 
-    // SICHERHEIT: Fehler beim Speichern werden jetzt angezeigt (else-Block hinzugefügt)
     async function saveBonusTipps() {
         const btn = document.getElementById('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
         let tipps = [];
-        
         document.querySelectorAll('.bonus-input').forEach(input => {
             if (!input.disabled && input.value.trim() !== "") {
-                let frageId = input.id.split('_')[1];
-                tipps.push({ frageId: frageId, tipp: input.value.trim() });
+                tipps.push({ frageId: input.id.split('_')[1], tipp: input.value.trim() });
             }
         });
-        
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tipps }) });
             const result = await res.json();
-            if (result.success) { 
-                showFloatingMessage("Bonus gespeichert!", true); 
-                loadData('bonus'); 
-            } else {
-                showFloatingMessage(result.error || "Fehler beim Speichern.", false);
-            }
+            if (result.success) { showFloatingMessage("Bonus gespeichert!", true); loadData('bonus'); } 
+            else { showFloatingMessage(result.error || "Fehler beim Speichern.", false); }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Bonus speichern"; }
     }
     
     function showFeedbackMessage(msg, isSuccess = false) {
         const box = document.getElementById('feedback-message-box');
-        box.style.color = isSuccess ? '#28a745' : '#d9534f';
-        box.innerText = msg;
+        box.style.color = isSuccess ? '#0468BF' : '#F20F79'; box.innerText = msg;
         setTimeout(() => box.innerText = '', 5000);
     }
 
     async function saveFeedback() {
         const btn = document.getElementById('btn-save-feedback');
         const text = document.getElementById('feedback-text').value.trim();
-        
         btn.disabled = true; btn.innerText = "Speichere...";
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveFeedback', name: currentUser, password: currentPassword, text: text }) });
             const result = await res.json();
-            if (result.success) { 
-                showFeedbackMessage(result.message, true); 
-            } else {
-                showFeedbackMessage(result.error);
-            }
+            if (result.success) showFeedbackMessage(result.message, true); 
+            else showFeedbackMessage(result.error);
         } catch (e) { showFeedbackMessage("Fehler beim Senden."); }
         finally { btn.disabled = false; btn.innerText = "Feedback abschicken"; }
     }
