@@ -42,7 +42,7 @@
         .btn-bonus   { background-color: #F28907; color: white; }
         .btn-ranking { background-color: #cdde10; color: #333; }
         .btn-profil  { background-color: #F20F79; color: white; }
-        .btn-rules   { background-color: #FB79C6; color: #333; }
+        .btn-rules   { background-color: #45a2a462; color: #333; }
         
         .active-btn { outline: 3px solid #333; outline-offset: 2px; }
 
@@ -222,7 +222,7 @@
             <button id="nav-tipps" class="btn-half btn-spiele" onclick="showSection('tipps')">⚽️ Spiele</button>
             <button id="nav-bonus" class="btn-half btn-bonus" onclick="showSection('bonus')">⭐️ Bonus</button>
             <button id="nav-dashboard" class="btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
-            <button id="nav-profil" class="btn-half btn-profil" onclick="showSection('profil')">🚀 Profil</button>
+            <button id="nav-profil" class="btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
             <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
         </div>
         
@@ -257,13 +257,13 @@
         </div>
 
         <div id="profil-section" class="hidden">
-            <h2>🚀 Profil</h2>
+            <h2>🚀 Statistik</h2>
             <div id="loader-profil" class="loader hidden"></div>
             
             <div class="summary-box" style="background: #fff; padding: 25px 15px; border-radius: 8px; border: 1px solid #dee2e6; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
                 <div class="kennzahlen-container">
-                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Platz</div><strong id="profil-platz-display" style="font-size: 2.5em; color: #becf05;">-</strong></div>
-                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Punkte</div><strong id="profil-punkte-display" style="font-size: 2.5em; color: #0468BF;">-</strong></div>
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Aktl. Platz</div><strong id="profil-platz-display" style="font-size: 2.5em; color: #becf05;">-</strong></div>
+                    <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Aktl. Punktzahl</div><strong id="profil-punkte-display" style="font-size: 2.5em; color: #0468BF;">-</strong></div>
                     <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">Ø Pkt / Spiel</div><strong id="profil-schnitt-display" style="font-size: 2.5em; color: #F20F79;">-</strong></div>
                     <div><div style="font-size: 0.75em; color: #666; text-transform: uppercase;">getippte Spiele</div><strong id="profil-spiele-display" style="font-size: 2.5em; color: #f7b03d;">-</strong></div>
                 </div>
@@ -705,11 +705,11 @@
                         borderWidth: 3, 
                         tension: 0.4, 
                         fill: 'start', 
-                        pointRadius: 4,
+                        pointRadius: 6,
                         pointBackgroundColor: '#ffffff',
                         pointBorderColor: '#F20F79',
                         pointBorderWidth: 2,
-                        pointHoverRadius: 6,
+                        pointHoverRadius: 7,
                         pointHoverBackgroundColor: '#F20F79',
                         pointHoverBorderColor: '#ffffff',
                         clip: false
