@@ -313,7 +313,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.23</div>
+<div id="version-display" class="version-number">v1.24</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -485,7 +485,10 @@
                 renderGames(result.spiele, result.userTipps);
                 renderRanking(result.ranking);
                 renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
-                renderProfil(result.myRankingHistory, result.myCurrentRank, result.myCurrentPoints, result.spiele, result.userTipps, result.userBonusTipps);
+                
+                // ÜBERGABE: Die Teilnehmeranzahl wird hier direkt als letzter Parameter mitgegeben
+                let spielerAnzahl = (result.ranking && result.ranking.length > 0) ? result.ranking.length : 1;
+                renderProfil(result.myRankingHistory, result.myCurrentRank, result.myCurrentPoints, result.spiele, result.userTipps, result.userBonusTipps, spielerAnzahl);
             }
         } catch (e) { console.log("Verbindungsproblem."); } 
         finally { if (loader) loader.classList.add('hidden'); }
@@ -504,7 +507,7 @@
         });
     }
 
-    function renderProfil(history, rank, points, spiele, userTipps, bonusTipps) {
+    function renderProfil(history, rank, points, spiele, userTipps, bonusTipps, totalPlayersCount) {
         document.getElementById('profil-platz-display').innerText = rank;
         document.getElementById('profil-punkte-display').innerText = points;
 
@@ -669,6 +672,7 @@
             }
         });
 
+        // --- LINIENDIAGRAMM: PLATZIERUNGSVERLAUF (MAGENTA) ---
         const ctxRank = document.getElementById('rankingChart').getContext('2d');
         if (rankingChartInstance) rankingChartInstance.destroy();
 
@@ -676,83 +680,98 @@
         gradient.addColorStop(0, 'rgba(242, 15, 121, 0.4)'); 
         gradient.addColorStop(1, 'rgba(242, 15, 121, 0.0)');
 
-        let totalPlayers = 50; 
+        // Validierung der übergebenen Spieleranzahl
+        let totalPlayers = totalPlayersCount && totalPlayersCount > 0 ? totalPlayersCount : 1; 
+        // Sicherheitsnetz: Verhindert identische min/max Werte, falls nur 1 Spieler existiert
+        let yMax = totalPlayers === 1 ? 2 : totalPlayers; 
+
         let dynamicStep = 1;
         if (totalPlayers >= 50) dynamicStep = 10;
         else if (totalPlayers >= 15) dynamicStep = 5;
 
-        rankingChartInstance = new Chart(ctxRank, {
-            type: 'line',
-            data: {
-                labels: history ? history.map((_, i) => 'Spiel ' + (i + 1)) : ['Start'],
-                datasets: [{
-                    label: 'Platzierung',
-                    data: history && history.length > 0 ? history : [1],
-                    borderColor: '#F20F79', 
-                    backgroundColor: gradient,
-                    borderWidth: 3, 
-                    tension: 0.4, 
-                    fill: 'start', 
-                    pointRadius: 4,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#F20F79',
-                    pointBorderWidth: 2,
-                    pointHoverRadius: 6,
-                    pointHoverBackgroundColor: '#F20F79',
-                    pointHoverBorderColor: '#ffffff',
-                    clip: false
-                }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                layout: { padding: { top: 20, bottom: 5, left: 10, right: 10 } },
-                interaction: { intersect: false, mode: 'index' },
-                scales: { 
-                    y: { 
-                        reverse: true, 
-                        min: 0.5, 
-                        max: totalPlayers + 2, 
-                        ticks: { 
-                            autoSkip: false, 
-                            stepSize: dynamicStep, 
-                            padding: 15, 
-                            color: '#555',
-                            font: { weight: 'normal', size: 12 },
-                            callback: function(value) {
-                                if (value === 1 || value % dynamicStep === 0) return value;
-                                return null;
-                            }
+        let chartLabels = (history && history.length > 0) ? history.map((_, i) => 'Spiel ' + (i + 1)) : ['Start'];
+        let chartData = (history && history.length > 0) ? history : [1];
+
+        try {
+            rankingChartInstance = new Chart(ctxRank, {
+                type: 'line',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Platzierung',
+                        data: chartData,
+                        borderColor: '#F20F79', 
+                        backgroundColor: gradient,
+                        borderWidth: 3, 
+                        tension: 0.4, 
+                        fill: 'start', 
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#F20F79',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#F20F79',
+                        pointHoverBorderColor: '#ffffff',
+                        clip: false
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 25, bottom: 25, left: 10, right: 10 } },
+                    interaction: { intersect: false, mode: 'index' },
+                    scales: { 
+                        y: { 
+                            reverse: true, 
+                            min: 1, 
+                            max: yMax, 
+                            ticks: { 
+                                autoSkip: false, 
+                                stepSize: 1, 
+                                padding: 15, 
+                                color: '#555',
+                                font: { weight: 'normal', size: 12 },
+                                callback: function(value) {
+                                    // Versteckt Kosmetik-Werte außerhalb der realen Spieleranzahl
+                                    if (value < 1 || value > totalPlayers) return null;
+                                    if (value === 1 || value === totalPlayers || value % dynamicStep === 0) {
+                                        return value;
+                                    }
+                                    return null;
+                                }
+                            },
+                            border: { display: false },
+                            grid: { 
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)',
+                                drawTicks: false,
+                                borderDash: [5, 5]
+                            } 
                         },
-                        border: { display: false },
-                        grid: { 
-                            display: true,
-                            color: 'rgba(0, 0, 0, 0.05)',
-                            drawTicks: false,
-                            borderDash: [5, 5],
-                            stepSize: 1 
+                        x: { 
+                            display: true, 
+                            ticks: { display: false }, 
+                            border: { display: false },
+                            grid: { 
+                                display: true, 
+                                color: 'rgba(0, 0, 0, 0.05)', 
+                                drawTicks: false
+                            }
                         } 
                     },
-                    x: { 
-                        display: true, 
-                        ticks: { display: false }, 
-                        border: { display: false },
-                        grid: { 
-                            display: true, 
-                            color: 'rgba(0, 0, 0, 0.05)', 
-                            drawTicks: false
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(242, 15, 121, 0.9)',
+                            titleColor: '#fff', bodyColor: '#fff', padding: 10, displayColors: false,
+                            callbacks: { label: function(context) { return 'Platz: ' + context.parsed.y; } }
                         }
-                    } 
-                },
-                plugins: { 
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(242, 15, 121, 0.9)',
-                        titleColor: '#fff', bodyColor: '#fff', padding: 10, displayColors: false,
-                        callbacks: { label: function(context) { return 'Platz: ' + context.parsed.y; } }
                     }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            console.log("Fehler beim Zeichnen des Ranking-Charts:", e);
+        }
     }
 
     function renderGames(spiele, userTipps) {
