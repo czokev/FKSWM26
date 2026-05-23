@@ -246,11 +246,22 @@
 
         <div id="dashboard-section" class="hidden">
             <h2>🏆 Ranking</h2>
+            
+            <div class="nav-buttons" style="margin-bottom: 15px; justify-content: center;">
+                <button id="btn-ranking-einzel" class="btn-half" style="background-color: #cdde10; color: #333; padding: 12px; font-size: 15px; border: none;" onclick="switchRankingMode('einzel')">Einzel</button>
+                <button id="btn-ranking-klasse" class="btn-half" style="background-color: #cdde1070; color: #333; padding: 12px; font-size: 15px; border: none;" onclick="switchRankingMode('klasse')">Klassen</button>
+            </div>
+
             <div id="loader-dashboard" class="loader hidden"></div>
             <div class="table-wrapper">
                 <table id="ranking-table">
                     <thead id="ranking-head">
-                        <tr><th>Platz</th><th>Name</th><th>Klasse</th><th>Form</th><th style="text-align:right;">Punkte</th></tr>
+                        <tr id="header-einzel">
+                            <th>Platz</th><th>Name</th><th>Klasse</th><th>Form</th><th style="text-align:right;">Punkte</th>
+                        </tr>
+                        <tr id="header-klasse" class="hidden">
+                            <th>Platz</th><th>Klasse / Gruppe</th><th>Teilnehmer</th><th style="text-align:right;">Ø Punkte</th>
+                        </tr>
                     </thead>
                     <tbody id="ranking-body"></tbody>
                 </table>
@@ -314,12 +325,15 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.25</div>
+<div id="version-display" class="version-number">v1.26</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
     
     let currentUser = "", currentPassword = "";
+
+    let globalRankingData = [];
+    let currentRankingMode = 'einzel';
     
     let rankingChartInstance = null;
     let pointsPieChartInstance = null; 
@@ -327,6 +341,40 @@
 
     Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
+    function switchRankingMode(mode) {
+        currentRankingMode = mode;
+        
+        const btnEinzel = document.getElementById('btn-ranking-einzel');
+        const btnKlasse = document.getElementById('btn-ranking-klasse');
+        const headEinzel = document.getElementById('header-einzel');
+        const headKlasse = document.getElementById('header-klasse');
+        
+        // Definition der Farbtöne für die Unterscheidung
+        const farbeAktiv = '#cdde10';    // Ein etwas dunkleres, sattes Grün
+        const farbeInaktiv = '#cdde1070';  // Das hellere Standard-Grün
+        
+        if (mode === 'einzel') {
+            // Optik für Einzelspieler-Modus
+            btnEinzel.style.backgroundColor = farbeAktiv;
+            btnKlasse.style.backgroundColor = farbeInaktiv;
+            
+            // Tabellenköpfe umschalten
+            headEinzel.classList.remove('hidden');
+            headKlasse.classList.add('hidden');
+        } else {
+            // Optik für Klassen-Modus
+            btnKlasse.style.backgroundColor = farbeAktiv;
+            btnEinzel.style.backgroundColor = farbeInaktiv;
+            
+            // Tabellenköpfe umschalten
+            headEinzel.classList.add('hidden');
+            headKlasse.classList.remove('hidden');
+        }
+        
+        // Tabelle mit den global zwischengespeicherten Daten neu aufbauen
+        renderRanking(globalRankingData, currentRankingMode);
+    }
+    
     function handlePinInput(elem) {
         elem.value = elem.value.replace(/[^0-9]/g, ''); 
         if (elem.value.length >= 1) {
@@ -409,7 +457,7 @@
                 document.getElementById('main-view').classList.remove('hidden');
                 showSection('start');
             } else showMessage(result.error);
-        } catch (e) { showMessage("Fehler."); } 
+        } catch (e) { showMessage("Fehler. Lade die Seite nochmal neu!"); } 
         finally { document.getElementById('auth-loader').classList.add('hidden'); }
     }
 
@@ -430,7 +478,7 @@
                 document.getElementById('version-display').classList.add('hidden'); 
                 document.getElementById('summary-view').classList.remove('hidden');
             } else showMessage(result.error);
-        } catch (err) { showMessage("Fehler."); } 
+        } catch (err) { showMessage("Fehler. Lade die Seite nochmal neu!"); } 
         finally { document.getElementById('auth-loader').classList.add('hidden'); }
     }
 
@@ -484,7 +532,9 @@
                 if (result.userFeedback !== undefined) document.getElementById('feedback-text').value = result.userFeedback;
                 
                 renderGames(result.spiele, result.userTipps);
-                renderRanking(result.ranking);
+                // Innerhalb von loadData(context):
+                globalRankingData = result.ranking; // Daten global speichern
+                renderRanking(globalRankingData, currentRankingMode);
                 renderBonusFragen(result.bonusFragen, result.userBonusTipps || []);
                 
                 // ÜBERGABE: Die Teilnehmeranzahl wird hier direkt als letzter Parameter mitgegeben
@@ -495,30 +545,92 @@
         finally { if (loader) loader.classList.add('hidden'); }
     }
 
-    function renderRanking(ranking) {
+    function renderRanking(ranking, mode = 'einzel') {
         const tbody = document.getElementById('ranking-body');
         tbody.innerHTML = '';
         
-        // Zuerst nach Punkten absteigend sortieren
-        ranking.sort((a, b) => b.punkte - a.punkte);
-        
-        let currentRank = 1;
-        let lastPoints = null;
+        if (mode === 'einzel') {
+            // --- LOGIK FÜR EINZELSPIELER ---
+            // Kopie des Arrays erstellen, um Originaldaten nicht zu verändern
+            let sortData = [...ranking].sort((a, b) => b.punkte - a.punkte);
+            
+            let currentRank = 1;
+            let lastPoints = null;
 
-        ranking.forEach((u, i) => {
-            // Wenn die Punkte vom Vordermann abweichen, bekommt der Nutzer den tatsächlichen Listen-Index + 1 (z.B. Platz 4 nach zwei 2. Plätzen)
-            if (u.punkte !== lastPoints) {
-                currentRank = i + 1;
-            }
-            lastPoints = u.punkte; // Aktuelle Punkte für den nächsten Durchlauf merken
+            sortData.forEach((u, i) => {
+                if (u.punkte !== lastPoints) currentRank = i + 1;
+                lastPoints = u.punkte;
 
-            const tr = document.createElement('tr');
-            if (u.name === currentUser) tr.style.background = "rgba(251, 121, 198, 0.15)";
-            let f = `<div class="form-container">`;
-            if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
-            tr.innerHTML = `<td>${currentRank}</td><td>${u.name}</td><td>${u.klasse||''}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
-            tbody.appendChild(tr);
-        });
+                const tr = document.createElement('tr');
+                if (u.name === currentUser) tr.style.background = "rgba(251, 121, 198, 0.15)";
+                
+                let f = `<div class="form-container">`;
+                if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
+                
+                tr.innerHTML = `<td>${currentRank}</td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                tbody.appendChild(tr);
+            });
+
+        } else if (mode === 'klasse') {
+            // --- LOGIK FÜR KLASSEN (DURCHSCHNITT) ---
+            let klassenDaten = {};
+
+            // Eigene Klasse des aktuell angemeldeten Nutzers aus den Gesamtdaten ermitteln
+            const currentUserObj = ranking.find(u => u.name === currentUser);
+            const currentUserKlasse = currentUserObj ? currentUserObj.klasse : "";
+
+            // 1. Daten aggregieren
+            ranking.forEach(u => {
+                let gruppe = u.klasse ? u.klasse.trim() : "";
+                if (gruppe === "") gruppe = "Ohne Zuordnung"; // Fallback
+
+                if (!klassenDaten[gruppe]) {
+                    klassenDaten[gruppe] = { gesamtPunkte: 0, anzahlNutzer: 0 };
+                }
+                klassenDaten[gruppe].gesamtPunkte += Number(u.punkte) || 0;
+                klassenDaten[gruppe].anzahlNutzer += 1;
+            });
+
+            // 2. Durchschnitt berechnen und in Array umwandeln
+            let klassenArray = Object.keys(klassenDaten).map(gruppenName => {
+                let daten = klassenDaten[gruppenName];
+                let durchschnitt = daten.gesamtPunkte / daten.anzahlNutzer;
+                return {
+                    name: gruppenName,
+                    teilnehmer: daten.anzahlNutzer,
+                    schnitt: durchschnitt.toFixed(2) // Auf 2 Nachkommastellen runden
+                };
+            });
+
+            // 3. Nach Durchschnitt absteigend sortieren
+            klassenArray.sort((a, b) => b.schnitt - a.schnitt);
+
+            // 4. Tabelle aufbauen
+            let currentRank = 1;
+            let lastSchnitt = null;
+
+            klassenArray.forEach((k, i) => {
+                if (k.schnitt !== lastSchnitt) currentRank = i + 1;
+                lastSchnitt = k.schnitt;
+
+                const tr = document.createElement('tr');
+                
+                // Überprüfung und farbliche Hervorhebung der eigenen Klasse
+                if (currentUserKlasse && k.name === currentUserKlasse) {
+                    tr.style.background = "rgba(251, 121, 198, 0.15)"; // Identischer Farbwert wie im Einzel-Ranking
+                } else if (k.name === "Mitarbeiter*in") {
+                    tr.style.background = "rgba(4, 104, 191, 0.05)";
+                }
+                
+                tr.innerHTML = `
+                    <td>${currentRank}</td>
+                    <td>${k.name}</td>
+                    <td>${k.teilnehmer}</td>
+                    <td style="font-weight:bold; text-align:right; color:#0468BF;">${k.schnitt}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 
     function renderProfil(history, rank, points, spiele, userTipps, bonusTipps, totalPlayersCount) {
