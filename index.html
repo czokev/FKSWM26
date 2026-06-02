@@ -325,7 +325,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.26</div>
+<div id="version-display" class="version-number">v1.27</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -567,7 +567,17 @@
                 let f = `<div class="form-container">`;
                 if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
                 
-                tr.innerHTML = `<td>${currentRank}</td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                // Trend-Icon bestimmen
+                let trendIcon = '';
+                if (u.trend === 1) {
+                    trendIcon = '<span style="color: #4CAF50; font-size: 1em; margin-left: 5px;">▲</span>';
+                } else if (u.trend === -1) {
+                    trendIcon = '<span style="color: #F20F79; font-size: 1em; margin-left: 5px;">▼</span>';
+                } else {
+                    trendIcon = '<span style="color: #FFCD61; font-size: 1em; margin-left: 5px;">●</span>';
+                }
+                
+                tr.innerHTML = `<td>${currentRank} ${trendIcon}</td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
