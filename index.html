@@ -164,11 +164,16 @@
             }
 
             #floating-save-bar {
-                padding-bottom: 8px; /* Hält den weißen Bereich unten schlank */
-                bottom: 15px; /* Schiebt den gesamten Balken nach oben */
-                width: 94%; /* Macht den Balken etwas schmaler als den Bildschirm */
-                left: 3%; /* Zentriert den Balken */
-                border-radius: 12px; /* Abgerundete Ecken für den modernen Look */
+                padding-bottom: 8px; 
+                bottom: 15px; 
+                width: 94%; 
+                left: 3%; 
+                border-radius: 12px; 
+                
+                /* Der Milchglas-Effekt für das iPhone */
+                background: rgba(255, 255, 255, 0.75); /* Erhöht die Transparenz */
+                backdrop-filter: blur(12px); 
+                -webkit-backdrop-filter: blur(12px); /* Zwingend für iOS Safari */
             }
         }
     </style>
@@ -368,7 +373,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.28</div>
+<div id="version-display" class="version-number">v1.29</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
