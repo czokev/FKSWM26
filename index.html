@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 80px; hyphens: auto;}
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 110px; hyphens: auto;}
         
         .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
         
@@ -87,7 +87,12 @@
         .loader::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: #0468BF; border-radius: 4px; animation: loadingBar 1.5s infinite ease-in-out; }
         @keyframes loadingBar { 0% { left: -50%; } 100% { left: 100%; } }
         
-        #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 10px 15px 15px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; box-sizing: border-box; z-index: 1000; }
+        #floating-save-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.95); padding: 10px 15px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; z-index: 1000; }
+        /* Fügt nur dann einen Abstand ein, wenn auch wirklich Text in der Box steht */
+        #floating-message-box:not(:empty) {
+            margin-bottom: 12px; 
+            transition: margin 0.2s ease-in-out;
+        }
         #floating-save-bar button { max-width: 600px; margin: 0; background-color: #0468BF; }
 
         .bonus-input { width: 95%; padding: 12px; font-size: 16px; margin: 10px auto; display: block; text-align: center; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; background-color: #fff; }
@@ -156,6 +161,14 @@
             }
             .kennzahlen-container div {
                 font-size: 0.9em !important;
+            }
+
+            #floating-save-bar {
+                padding-bottom: 8px; /* Hält den weißen Bereich unten schlank */
+                bottom: 15px; /* Schiebt den gesamten Balken nach oben */
+                width: 94%; /* Macht den Balken etwas schmaler als den Bildschirm */
+                left: 3%; /* Zentriert den Balken */
+                border-radius: 12px; /* Abgerundete Ecken für den modernen Look */
             }
         }
     </style>
@@ -348,14 +361,14 @@
         </div>
         
         <div id="floating-save-bar" class="hidden">
-            <div id="floating-message-box" style="text-align: center; font-weight: bold; min-height: 1.2em; margin-bottom: 8px; font-size: 14px;"></div>
+            <div id="floating-message-box" style="text-align: center; font-weight: bold; font-size: 14px; color: #0468BF;"></div>
             <button id="btn-save-all" onclick="saveAllTipps()">Tipps speichern</button>
             <button id="btn-save-bonus" class="hidden" onclick="saveBonusTipps()">Bonus speichern</button>
         </div>
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.27</div>
+<div id="version-display" class="version-number">v1.28</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
