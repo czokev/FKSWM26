@@ -87,6 +87,21 @@
         .loader::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: #0468BF; border-radius: 4px; animation: loadingBar 1.5s infinite ease-in-out; }
         @keyframes loadingBar { 0% { left: -50%; } 100% { left: 100%; } }
         
+        .pulsating-circle { 
+            display: inline-block; 
+            width: 10px; 
+            height: 10px; 
+            background-color: #F20F79; 
+            border-radius: 50%; 
+            margin-right: 6px; 
+            animation: pulse 1.5s infinite; 
+        }
+        @keyframes pulse { 
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(242, 15, 121, 0.7); } 
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(242, 15, 121, 0); } 
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(242, 15, 121, 0); } 
+        }
+
         #floating-save-bar { 
             position: fixed; bottom: 0; left: 0; width: 100%; 
             background: rgba(255, 255, 255, 0.137); /* Leichte Transparenz */
@@ -374,7 +389,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.29</div>
+<div id="version-display" class="version-number">v1.30</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -618,15 +633,11 @@
                 
                 // Trend-Icon bestimmen
                 let trendIcon = '';
-                if (u.trend === 1) {
-                    trendIcon = '<span style="color: #4CAF50; font-size: 1em; margin-left: 5px;">▲</span>';
-                } else if (u.trend === -1) {
-                    trendIcon = '<span style="color: #F20F79; font-size: 1em; margin-left: 5px;">▼</span>';
-                } else {
-                    trendIcon = '<span style="color: #FFCD61; font-size: 1em; margin-left: 5px;">●</span>';
-                }
+                if (u.trend === 1) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
+                else if (u.trend === -1) trendIcon = '<span style="color: #F20F79; font-size: 1em;">▼</span>';
+                else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
                 
-                tr.innerHTML = `<td>${currentRank} ${trendIcon}</td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
@@ -974,8 +985,18 @@
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
+            let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED");
+            
             let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
-            let res = hasFinalResult ? `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>` : "";
+            
+            let res = "";
+            if (hasFinalResult) {
+                res = `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>`;
+            } else if (isLive) {
+                let lh = s.liveH !== "" ? s.liveH : "0";
+                let la = s.liveA !== "" ? s.liveA : "0";
+                res = `<div style="background:rgba(242, 15, 121, 0.1); color:#F20F79; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
+            }
 
             card.innerHTML = `${badge}
                 <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
