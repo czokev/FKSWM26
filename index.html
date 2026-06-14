@@ -160,7 +160,7 @@
             .matchup-row { gap: 5px; }
             .team-name { font-size: 0.85em; }
             th, td { font-size: 12px; padding: 10px 2px; }
-            .form-circle { width: 18px; height: 18px; font-size: 10px; }
+            .form-circle { width: 16px; height: 16px; font-size: 9px; }
             .score-inputs input { width: 34px; height: 34px; font-size: 16px; }
             .score-inputs { min-width: 80px; }
             
@@ -389,7 +389,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.31</div>
+<div id="version-display" class="version-number">v1.32</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -975,18 +975,25 @@
         container.innerHTML = '';
         spiele.forEach(s => {
             if (s.heim === "TBA" || s.auswaerts === "TBA") return; 
-            const isL = s.status === 'gesperrt';
-            const t = userTipps.find(ti => ti.spielId == s.id) || {tippH:'', tippA:'', punkte:''};
+            
+            // NEU: Strenge Zeitprüfung beim Rendern
+            let isL = s.status === 'gesperrt';
+            let anstossMs = 0;
             let terminStr = "";
             if (s.zeit) {
                 const d = new Date(s.zeit);
+                anstossMs = d.getTime();
                 terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+                // Wenn die lokale Gerätezeit nach der Anstoßzeit liegt -> sofort sperren
+                if (Date.now() >= anstossMs) isL = true; 
             }
+            
+            const t = userTipps.find(ti => ti.spielId == s.id) || {tippH:'', tippA:'', punkte:''};
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
+            
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
             let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED");
-            
             let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
             
             let res = "";
@@ -998,10 +1005,12 @@
                 res = `<div style="background:rgba(242, 15, 121, 0.1); color:#F20F79; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
             }
 
+            // NEU: data-zeit Attribut an die Inputs gehängt
             card.innerHTML = `${badge}
                 <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
-                <div class="score-inputs"><input type="number" inputmode="numeric" pattern="[0-9]*" id="heim_${s.id}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
+                <div class="score-inputs">
+                <input type="number" inputmode="numeric" pattern="[0-9]*" id="heim_${s.id}" data-zeit="${anstossMs}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
                 <input type="number" inputmode="numeric" pattern="[0-9]*" id="auswaerts_${s.id}" value="${t.tippA}" ${isL?'disabled':''}></div>
                 <div class="team-name away">${s.auswaerts}</div></div>${res}`;
             container.appendChild(card);
@@ -1012,27 +1021,33 @@
         const container = document.getElementById('bonus-container');
         container.innerHTML = '';
         fragen.forEach(f => {
-            const isL = f.status === 'gesperrt';
-            const t = userTipps.find(ti => ti.frageId == f.id) || {tipp:'', punkte:''};
+            // NEU: Strenge Zeitprüfung
+            let isL = f.status === 'gesperrt';
+            let fristMs = 0;
             let terminStr = "Keine Frist";
             if (f.zeit) {
                 const d = new Date(f.zeit);
+                fristMs = d.getTime();
                 terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+                if (Date.now() >= fristMs) isL = true;
             }
+            
+            const t = userTipps.find(ti => ti.frageId == f.id) || {tipp:'', punkte:''};
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tipp !== '' ? ' tipped-game' : ''));
             let badge = "";
             if (isL && t.punkte !== '') {
                 badge = `<div class="form-circle" style="background-color: ${t.punkte > 0 ? '#0468BF' : '#F20F79'}; position:absolute; top:8px; right:8px; width:28px; height:28px; color:white; font-size:14px;">${t.punkte}</div>`;
             }
+            
             let inputElementHtml = "";
             if (f.auswahl && f.auswahl.trim() !== "") {
                 let options = f.auswahl.split(',').map(opt => opt.trim());
-                inputElementHtml = `<select id="bonus_${f.id}" class="bonus-input" style="text-align-last: center;" ${isL?'disabled':''}><option value="">Bitte wählen...</option>`;
+                inputElementHtml = `<select id="bonus_${f.id}" data-zeit="${fristMs}" class="bonus-input" style="text-align-last: center;" ${isL?'disabled':''}><option value="">Bitte wählen...</option>`;
                 options.forEach(opt => { inputElementHtml += `<option value="${opt}" ${t.tipp === opt ? "selected" : ""}>${opt}</option>`; });
                 inputElementHtml += `</select>`;
             } else {
-                inputElementHtml = `<input type="text" id="bonus_${f.id}" class="bonus-input" value="${t.tipp}" ${isL?'disabled':''} placeholder="Antwort...">`;
+                inputElementHtml = `<input type="text" id="bonus_${f.id}" data-zeit="${fristMs}" class="bonus-input" value="${t.tipp}" ${isL?'disabled':''} placeholder="Antwort...">`;
             }
             card.innerHTML = `${badge}<div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">${terminStr} ${isL ? '🔒' : ''}</div><div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>${inputElementHtml}`;
             container.appendChild(card);
@@ -1043,15 +1058,39 @@
         const btn = document.getElementById('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
         let tipps = [];
+        let zuSpaetCount = 0; // Zähler für Spiele, bei denen die Zeit beim Klicken abgelaufen war
+        
         document.querySelectorAll('input[id^="heim_"]').forEach(h => {
             const id = h.id.split('_')[1];
             const a = document.getElementById('auswaerts_' + id);
+            
+            // NEU: Echtzeit-Prüfung beim Klick auf Speichern
+            let anstossMs = parseInt(h.getAttribute('data-zeit')) || 0;
+            if (anstossMs > 0 && Date.now() >= anstossMs) {
+                // Wenn das Feld noch editierbar war, sich der Nutzer aber verspätet hat
+                if (!h.disabled && h.value !== "") zuSpaetCount++;
+                return; // Beendet den Durchlauf für DIESES Spiel sofort (Tipp wird nicht gesendet)
+            }
+
             if (!h.disabled && h.value !== "" && a.value !== "") tipps.push({ spielId: id, tippH: h.value, tippA: a.value });
         });
+        
+        if (tipps.length === 0 && zuSpaetCount > 0) {
+            showFloatingMessage("Zeit abgelaufen! Tipps wurden nicht mehr angenommen.", false);
+            btn.disabled = false; btn.innerText = "Tipps speichern";
+            loadData('tipps'); // Lädt die Seite neu, damit die Felder nun ausgegraut sind
+            return;
+        }
+
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveAllTipps', name: currentUser, password: currentPassword, tipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showFloatingMessage("Gespeichert!", true); loadData('tipps'); } 
+            if (result.success) { 
+                let msg = "Gespeichert!";
+                if (zuSpaetCount > 0) msg = "Teilweise gespeichert (Einige Spiele hatten bereits begonnen!).";
+                showFloatingMessage(msg, true); 
+                loadData('tipps'); 
+            } 
             else { showFloatingMessage(result.error || "Fehler beim Speichern.", false); }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Tipps speichern"; }
@@ -1061,15 +1100,37 @@
         const btn = document.getElementById('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
         let tipps = [];
+        let zuSpaetCount = 0;
+
         document.querySelectorAll('.bonus-input').forEach(input => {
+            // NEU: Echtzeit-Prüfung
+            let fristMs = parseInt(input.getAttribute('data-zeit')) || 0;
+            if (fristMs > 0 && Date.now() >= fristMs) {
+                if (!input.disabled && input.value.trim() !== "") zuSpaetCount++;
+                return;
+            }
+
             if (!input.disabled && input.value.trim() !== "") {
                 tipps.push({ frageId: input.id.split('_')[1], tipp: input.value.trim() });
             }
         });
+
+        if (tipps.length === 0 && zuSpaetCount > 0) {
+            showFloatingMessage("Frist abgelaufen! Bonus-Tipps nicht mehr angenommen.", false);
+            btn.disabled = false; btn.innerText = "Bonus speichern";
+            loadData('bonus'); 
+            return;
+        }
+
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveBonusTipps', name: currentUser, password: currentPassword, bonusTipps: tipps }) });
             const result = await res.json();
-            if (result.success) { showFloatingMessage("Bonus gespeichert!", true); loadData('bonus'); } 
+            if (result.success) { 
+                let msg = "Bonus gespeichert!";
+                if (zuSpaetCount > 0) msg = "Teilweise gespeichert (Fristen waren bereits abgelaufen!).";
+                showFloatingMessage(msg, true); 
+                loadData('bonus'); 
+            } 
             else { showFloatingMessage(result.error || "Fehler beim Speichern.", false); }
         } catch (e) { showFloatingMessage("Fehler beim Speichern."); }
         finally { btn.disabled = false; btn.innerText = "Bonus speichern"; }
