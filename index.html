@@ -191,6 +191,9 @@
                 padding-bottom: 25px; 
             }
 
+            /* Blendet ältere Form-Kreise auf dem Handy aus */
+            .hide-mobile { display: none !important; }
+
         }
     </style>
 
@@ -389,7 +392,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.32</div>
+<div id="version-display" class="version-number">v1.33</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -629,7 +632,15 @@
                 if (u.name === currentUser) tr.style.background = "rgba(251, 121, 198, 0.15)";
                 
                 let f = `<div class="form-container">`;
-                if (u.letzteSpiele) u.letzteSpiele.forEach(p => f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`);
+                if (u.letzteSpiele) {
+                    let totalLetzte = u.letzteSpiele.length;
+                    u.letzteSpiele.forEach((p, idx) => {
+                        // Berechnet den Abstand zum aktuellsten Spiel. 
+                        // Alles was älter als 5 Spiele ist, bekommt die Klasse 'hide-mobile'
+                        let hideClass = (totalLetzte - idx > 5) ? ' hide-mobile' : '';
+                        f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}${hideClass}">${p}</div>`;
+                    });
+                }
                 
                 // Trend-Icon bestimmen
                 let trendIcon = '';
