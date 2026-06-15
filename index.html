@@ -392,7 +392,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.33</div>
+<div id="version-display" class="version-number">v1.34</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -1049,7 +1049,6 @@
         const container = document.getElementById('bonus-container');
         container.innerHTML = '';
         fragen.forEach(f => {
-            // NEU: Strenge Zeitprüfung
             let isL = f.status === 'gesperrt';
             let fristMs = 0;
             let terminStr = "Keine Frist";
@@ -1077,7 +1076,16 @@
             } else {
                 inputElementHtml = `<input type="text" id="bonus_${f.id}" data-zeit="${fristMs}" class="bonus-input" value="${t.tipp}" ${isL?'disabled':''} placeholder="Antwort...">`;
             }
-            card.innerHTML = `${badge}<div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">${terminStr} ${isL ? '🔒' : ''}</div><div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>${inputElementHtml}`;
+
+            // NEU: Lösung anzeigen, wenn die Frist abgelaufen ist und ein Ergebnis vorliegt
+            let res = "";
+            if (isL && f.echtesErg && f.echtesErg.toString().trim() !== "") {
+                // Das erste Zeichen großschreiben, falls es in der Tabelle klein geschrieben wurde
+                let anzeigeErg = f.echtesErg.toString().charAt(0).toUpperCase() + f.echtesErg.toString().slice(1);
+                res = `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">${anzeigeErg}</div>`;
+            }
+
+            card.innerHTML = `${badge}<div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">${terminStr} ${isL ? '🔒' : ''}</div><div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>${inputElementHtml}${res}`;
             container.appendChild(card);
         });
     }
