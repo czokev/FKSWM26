@@ -19,6 +19,12 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 15px; padding-bottom: 110px; hyphens: auto;}
         
+        /* Verhindert eigenmächtige Textvergrößerung im Querformat */
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
         .container { max-width: 700px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); position: relative; }
         
         .header-image { max-height: 170px; width: auto; max-width: 100%; margin: 0 auto 0px auto; display: block; border-radius: 8px; }
@@ -193,7 +199,14 @@
 
         /* Die Unter-Tabelle der Spieler */
         .player-sub-table { width: 100%; border-collapse: collapse; margin-top: 0; margin-bottom: 0; }
-        .player-sub-row td { padding: 8px 4px; border-bottom: 1px solid #eaeaea; color: #555; font-size: 0.9em; background-color: #f8f9fa; }
+        .player-sub-row td { 
+            padding: 8px 4px; 
+            border-bottom: 1px solid #eaeaea; 
+            color: #555; 
+            background-color: #f8f9fa;
+            font-size: 14px !important; /* Erzwingt die einheitliche Größe */
+            line-height: 1.3 !important; /* Verhindert ein vertikales Verspringen */
+        }
         .player-sub-row td:first-child { box-shadow: inset 4px 0 0 #ccc; padding-left: 10px; } /* Graue Einrückung links */
         .player-sub-row:last-child td { border-bottom: none; }
 
@@ -239,10 +252,9 @@
                 height: 20px; /* Angepasst an die mobile Kreis-Größe (20px) */
             }
 
-            /* Erwingt eine einheitliche Schriftgröße für die Spielerliste */
-            .player-sub-row td {
-                font-size: 13px !important; /* Ein fester Wert, der auf allen Handys gleich aussieht */
-                line-height: 1.2 !important;
+            /* NEU: */
+            #rankingChartInner {
+                height: 320px !important; 
             }
 
         }
@@ -453,7 +465,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.40</div>
+<div id="version-display" class="version-number">v1.41</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -808,12 +820,13 @@
                     if (p.punkte !== spielerPunkte) spielerRang = pIdx + 1;
                     spielerPunkte = p.punkte;
                     
-                    let markierung = (p.name === currentUser) ? 'font-weight: bold; color: #0468BF;' : '';
+                    // NEU: Wenn es der aktuelle Nutzer ist, bekommt die ganze Zeile einen roten Hintergrund
+                    let highlightStyle = (p.name === currentUser) ? 'background-color: rgba(242, 15, 121, 0.15); color: #F20F79; font-weight: bold;' : '';
 
                     playerHtml += `<tr class="player-sub-row">
-                        <td style="width: 45px; text-align: right; padding-right: 10px;">${spielerRang}.</td>
-                        <td style="${markierung}">${p.name}</td>
-                        <td colspan="2" style="text-align:right; font-weight: bold; ${markierung}">${p.punkte}</td>
+                        <td style="width: 45px; text-align: right; padding-right: 10px; ${highlightStyle}">${spielerRang}.</td>
+                        <td style="${highlightStyle}">${p.name}</td>
+                        <td colspan="2" style="text-align:right; font-weight: bold; ${highlightStyle}">${p.punkte}</td>
                     </tr>`;
                 });
                 playerHtml += '</table></td>';
