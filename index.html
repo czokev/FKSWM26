@@ -820,8 +820,8 @@
                     if (p.punkte !== spielerPunkte) spielerRang = pIdx + 1;
                     spielerPunkte = p.punkte;
                     
-                    // NEU: Wenn es der aktuelle Nutzer ist, bekommt die ganze Zeile einen roten Hintergrund
-                    let highlightStyle = (p.name === currentUser) ? 'background-color: rgba(242, 15, 121, 0.15); color: #F20F79; font-weight: bold;' : '';
+                    // NEU: Nur die dezente Hintergrundfarbe aus dem Einzel-Ranking, keine Änderung an der Schrift
+                    let highlightStyle = (p.name === currentUser) ? 'background-color: rgba(251, 121, 198, 0.15);' : '';
 
                     playerHtml += `<tr class="player-sub-row">
                         <td style="width: 45px; text-align: right; padding-right: 10px; ${highlightStyle}">${spielerRang}.</td>
