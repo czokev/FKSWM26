@@ -375,10 +375,10 @@
                             <th style="text-align:right; width: 100px;">Punkte</th>
                         </tr>
                         <tr id="header-klasse" class="hidden">
-                            <th style="width: 70px;">Platz</th>
-                            <th style="width: 30%;">Klasse</th>
+                            <th style="width: 100px;">Platz</th>
+                            <th style="width: 35%;">Klasse</th>
                             <th>Teilnehmer</th>
-                            <th style="text-align:right; width: 80px;">Ø Punkte</th>
+                            <th style="text-align:right; width: 100px;">Ø Punkte</th>
                         </tr>
                     </thead>
                     <tbody id="ranking-body"></tbody>
@@ -447,7 +447,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.39</div>
+<div id="version-display" class="version-number">v1.40</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -700,7 +700,7 @@
                 else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
                 
                 // Spalte für die Klasse wurde hier entfernt
-                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
@@ -778,7 +778,7 @@
                 
                 // Der Pfeil bekommt die neue Klasse 'toggle-arrow'
                 tr.innerHTML = `
-                    <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
+                    <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
                     <td><strong>${k.name}</strong> <span id="arrow-${i}" class="toggle-arrow">▼</span></td>
                     <td>${k.teilnehmer} <span style="font-size: 0.8em; color: #888;"></span></td>
                     <td style="font-weight:bold; text-align:right; color:#0468BF;">${k.schnitt.toFixed(2)}</td>
