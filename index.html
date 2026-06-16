@@ -407,7 +407,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.35</div>
+<div id="version-display" class="version-number">v1.36</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -850,14 +850,21 @@
                     }, 
                     x: { 
                         display: true, 
-                        ticks: { display: false }, 
+                        ticks: { 
+                            display: true, /* Hier aktivieren wir die Beschriftung */
+                            color: '#888', /* Ein dezentes Grau */
+                            font: { size: 8 }, /* Etwas kleinere Schrift */
+                            maxRotation: 45, /* Stellt die Schrift leicht schräg, falls es eng wird */
+                            minRotation: 40,
+                            padding: 10
+                        }, 
                         border: { display: false },
                         grid: { 
                             display: true, 
                             color: 'rgba(0, 0, 0, 0.05)', 
                             drawTicks: false
                         }
-                    } 
+                    }
                 },
                 plugins: { 
                     legend: { display: false },
@@ -989,14 +996,21 @@
                         },
                         x: { 
                             display: true, 
-                            ticks: { display: false }, 
+                            ticks: { 
+                                display: true, /* Hier aktivieren wir die Beschriftung */
+                                color: '#888',
+                                font: { size: 8 },
+                                maxRotation: 45,
+                                minRotation: 40,
+                                padding: 10
+                            }, 
                             border: { display: false },
                             grid: { 
                                 display: true, 
                                 color: 'rgba(0, 0, 0, 0.05)', 
                                 drawTicks: false
                             }
-                        } 
+                        }
                     },
                     plugins: { 
                         legend: { display: false },
