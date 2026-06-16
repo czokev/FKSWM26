@@ -167,10 +167,19 @@
             flex: 1 1 20%;
         }
 
-        .class-row { cursor: pointer; transition: background-color 0.2s; }
-        .class-row:hover { background-color: rgba(4, 104, 191, 0.05); }
+        /* Hauptzeile der Klasse */
+        .class-row { cursor: pointer; transition: all 0.2s ease; }
+        .class-row:hover { background-color: rgba(4, 104, 191, 0.08); }
+        .class-row.active-row td:first-child { box-shadow: inset 4px 0 0 #0468BF; } /* Blauer Balken links, wenn offen */
+        
+        /* Der animierte Pfeil */
+        .toggle-arrow { display: inline-block; margin-left: 8px; font-size: 0.85em; color: #0468BF; transition: transform 0.3s ease; }
+        .toggle-arrow.open { transform: rotate(-180deg); } /* Dreht den Pfeil sanft um */
+
+        /* Die Unter-Tabelle der Spieler */
         .player-sub-table { width: 100%; border-collapse: collapse; margin-top: 0; margin-bottom: 0; }
-        .player-sub-row td { padding: 8px 4px; border-bottom: 1px solid #eee; color: #555; font-size: 0.9em; background-color: #f8f9fa; }
+        .player-sub-row td { padding: 8px 4px; border-bottom: 1px solid #eaeaea; color: #555; font-size: 0.9em; background-color: #f8f9fa; }
+        .player-sub-row td:first-child { box-shadow: inset 4px 0 0 #ccc; padding-left: 10px; } /* Graue Einrückung links */
         .player-sub-row:last-child td { border-bottom: none; }
 
         @media (max-width: 500px) {
@@ -413,7 +422,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.37</div>
+<div id="version-display" class="version-number">v1.38</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -731,7 +740,9 @@
                 // Hauptzeile für die Klasse erstellen
                 const tr = document.createElement('tr');
                 tr.className = 'class-row';
-                tr.onclick = function() { toggleClassDetails(i); }; // Klick-Event binden
+                tr.id = `class-row-${i}`; // Wichtig für die farbliche Markierung beim Klicken
+                tr.title = "Tippen, um die Spieler dieser Klasse anzuzeigen"; // Tooltip für Desktop-Nutzer
+                tr.onclick = function() { toggleClassDetails(i); }; 
                 
                 if (currentUserKlasse && k.name === currentUserKlasse) {
                     tr.style.background = "rgba(251, 121, 198, 0.15)"; 
@@ -739,10 +750,11 @@
                     tr.style.background = "rgba(4, 104, 191, 0.05)";
                 }
                 
+                // Der Pfeil bekommt die neue Klasse 'toggle-arrow'
                 tr.innerHTML = `
                     <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
-                    <td>${k.name} <span id="arrow-${i}" style="font-size: 0.8em; color: #888; margin-left: 5px;">▼</span></td>
-                    <td>${k.teilnehmer}</td>
+                    <td><strong>${k.name}</strong> <span id="arrow-${i}" class="toggle-arrow">▼</span></td>
+                    <td>${k.teilnehmer} <span style="font-size: 0.8em; color: #888;"></span></td>
                     <td style="font-weight:bold; text-align:right; color:#0468BF;">${k.schnitt.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
@@ -784,12 +796,16 @@
     function toggleClassDetails(index) {
         const detailRow = document.getElementById(`details-${index}`);
         const arrow = document.getElementById(`arrow-${index}`);
+        const classRow = document.getElementById(`class-row-${index}`);
+        
         if (detailRow.classList.contains('hidden')) {
             detailRow.classList.remove('hidden');
-            arrow.innerText = '▲';
+            arrow.classList.add('open'); // Dreht den Pfeil nach oben
+            classRow.classList.add('active-row'); // Setzt den blauen Rand
         } else {
             detailRow.classList.add('hidden');
-            arrow.innerText = '▼';
+            arrow.classList.remove('open'); // Dreht den Pfeil zurück
+            classRow.classList.remove('active-row'); // Entfernt den blauen Rand
         }
     }
 
