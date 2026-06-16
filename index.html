@@ -73,7 +73,22 @@
         table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 14px; }
         th, td { padding: 12px 4px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
         
-        .form-container { display: flex; gap: 5px; }
+        /* Zwingt die Tabellenspalte, restlichen Platz zu nutzen, ohne die Tabelle zu sprengen */
+        .dynamic-form-col {
+            width: 100%;
+            max-width: 0; 
+            padding-right: 10px;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: row-reverse; /* Baut die Elemente von rechts nach links auf */
+            justify-content: flex-start; /* Verankert das neueste Spiel am rechten Rand */
+            flex-wrap: wrap; /* Schiebt ältere Spiele, die nicht mehr passen, in die nächste Zeile */
+            gap: 5px;
+            height: 26px; /* Exakte Höhe eines PC-Kreises - schneidet die nächste Zeile ab */
+            overflow: hidden; /* Versteckt alles, was in die zweite Zeile rutscht */
+        }
         .form-circle { width: 20px; height: 20px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 12px; font-weight: bold; color: white; background-color: #ccc; flex-shrink: 0; }
         .form-circle.points-3 { background-color: #0468BF; } 
         .form-circle.points-1 { background-color: #F28907; color: #fff; } 
@@ -220,6 +235,10 @@
             /* Blendet ältere Form-Kreise auf dem Handy aus */
             .hide-mobile { display: none !important; }
 
+            .form-container {
+                height: 20px; /* Angepasst an die mobile Kreis-Größe (20px) */
+            }
+
         }
     </style>
 
@@ -350,10 +369,16 @@
                 <table id="ranking-table">
                     <thead id="ranking-head">
                         <tr id="header-einzel">
-                            <th>Platz</th><th>Name</th><th>Form</th><th style="text-align:right;">Punkte</th>
+                            <th style="width: 100px;">Platz</th>
+                            <th style="width: 20%;">Name</th>
+                            <th style="text-align: right; padding-right: 10px;">Form</th>
+                            <th style="text-align:right; width: 100px;">Punkte</th>
                         </tr>
                         <tr id="header-klasse" class="hidden">
-                            <th>Platz</th><th>Klasse</th><th>Teilnehmer</th><th style="text-align:right;">Ø Punkte</th>
+                            <th style="width: 70px;">Platz</th>
+                            <th style="width: 30%;">Klasse</th>
+                            <th>Teilnehmer</th>
+                            <th style="text-align:right; width: 80px;">Ø Punkte</th>
                         </tr>
                     </thead>
                     <tbody id="ranking-body"></tbody>
@@ -422,7 +447,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.38</div>
+<div id="version-display" class="version-number">v1.39</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -661,12 +686,13 @@
                 
                 let f = `<div class="form-container">`;
                 if (u.letzteSpiele) {
-                    let totalLetzte = u.letzteSpiele.length;
-                    u.letzteSpiele.forEach((p, idx) => {
-                        let hideClass = (totalLetzte - idx > 5) ? ' hide-mobile' : '';
-                        f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}${hideClass}">${p}</div>`;
+                    // Wir drehen das Array um, damit das neueste Spiel zuerst gerendert wird
+                    let reversedSpiele = [...u.letzteSpiele].reverse();
+                    reversedSpiele.forEach(p => {
+                        f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}">${p}</div>`;
                     });
                 }
+                f += `</div>`;
                 
                 let trendIcon = '';
                 if (u.trend === 1) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
@@ -674,7 +700,7 @@
                 else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
                 
                 // Spalte für die Klasse wurde hier entfernt
-                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
