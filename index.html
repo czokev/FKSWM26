@@ -723,7 +723,7 @@
                 else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
                 
                 // Spalte für die Klasse wurde hier entfernt
-                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right; padding-right: 10px;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
@@ -804,7 +804,7 @@
                     <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
                     <td><strong>${k.name}</strong> <span id="arrow-${i}" class="toggle-arrow">▼</span></td>
                     <td>${k.teilnehmer} <span style="font-size: 0.8em; color: #888;"></span></td>
-                    <td style="font-weight:bold; text-align:right; color:#0468BF;">${k.schnitt.toFixed(2)}</td>
+                    <td style="font-weight:bold; text-align:right; color:#0468BF; padding-right: 10px;">${k.schnitt.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
 
@@ -831,7 +831,7 @@
                     playerHtml += `<tr class="player-sub-row">
                         <td style="width: 45px; text-align: right; padding-right: 10px; ${highlightStyle}">${spielerRang}.</td>
                         <td style="${highlightStyle}">${p.name}</td>
-                        <td colspan="2" style="text-align:right; font-weight: bold; ${highlightStyle}">${p.punkte}</td>
+                        <td colspan="2" style="text-align:right; font-weight: bold; padding-right: 10px; ${highlightStyle}">${p.punkte}</td>
                     </tr>`;
                 });
                 playerHtml += '</table></td>';
