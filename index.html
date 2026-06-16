@@ -147,6 +147,17 @@
             height: 110px;
         }
 
+        .chart-scroll-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Dezente Scrollbar für die Grafiken */
+        .chart-scroll-wrapper::-webkit-scrollbar { height: 6px; }
+        .chart-scroll-wrapper::-webkit-scrollbar-track { background: #f8f9fa; border-radius: 4px; }
+        .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
         .kennzahlen-container {
             display: flex;
             justify-content: space-between;
@@ -351,8 +362,10 @@
             <div class="profil-grid">
                 <div class="chart-box">
                     <h4 style="margin-top: 0; margin-bottom: 10px; text-align: center; color: #333; font-size: 0.75em; text-transform: uppercase;">Punkte-Verlauf</h4>
-                    <div class="chart-container-top">
-                        <canvas id="pointsHistoryChart"></canvas>
+                    <div class="chart-scroll-wrapper" id="scroll-wrapper-points">
+                        <div class="chart-container-top" id="pointsHistoryInner">
+                            <canvas id="pointsHistoryChart"></canvas>
+                        </div>
                     </div>
                 </div>
                 
@@ -366,8 +379,10 @@
             
             <div class="chart-box" style="margin-bottom: 15px;">
                 <h4 style="margin-top: 0; text-align: center; color: #333; font-size: 0.8em; text-transform: uppercase;">Platzierungs-Verlauf</h4>
-                <div style="position: relative; height: 200px; width: 100%;">
-                    <canvas id="rankingChart"></canvas>
+                <div class="chart-scroll-wrapper" id="scroll-wrapper-ranking">
+                    <div style="position: relative; height: 200px; width: 100%;" id="rankingChartInner">
+                        <canvas id="rankingChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -392,7 +407,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.34</div>
+<div id="version-display" class="version-number">v1.35</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -996,15 +1011,34 @@
         } catch (e) {
             console.log("Fehler beim Zeichnen des Ranking-Charts:", e);
         }
+
+        // NEU: Dynamische Breite für die Diagramme berechnen (ca. 40 Pixel pro Spiel)
+        // Dadurch wächst das Diagramm nach rechts und staucht nicht.
+        let minWidthPoints = pointHistoryLabels.length * 40;
+        let minWidthRanking = chartLabels.length * 40;
+        
+        document.getElementById('pointsHistoryInner').style.minWidth = minWidthPoints + 'px';
+        document.getElementById('rankingChartInner').style.minWidth = minWidthRanking + 'px';
+
+        // Automatisches Scrollen an den rechten Rand (aktuellster Stand)
+        setTimeout(() => {
+            const wrapPoints = document.getElementById('scroll-wrapper-points');
+            const wrapRanking = document.getElementById('scroll-wrapper-ranking');
+            if (wrapPoints) wrapPoints.scrollLeft = wrapPoints.scrollWidth;
+            if (wrapRanking) wrapRanking.scrollLeft = wrapRanking.scrollWidth;
+        }, 300);
     }
 
     function renderGames(spiele, userTipps) {
         const container = document.getElementById('games-container');
         container.innerHTML = '';
+        
+        // NEU: Flag, um das erste offene Spiel zu finden
+        let foundScrollTarget = false; 
+
         spiele.forEach(s => {
             if (s.heim === "TBA" || s.auswaerts === "TBA") return; 
             
-            // NEU: Strenge Zeitprüfung beim Rendern
             let isL = s.status === 'gesperrt';
             let anstossMs = 0;
             let terminStr = "";
@@ -1012,7 +1046,6 @@
                 const d = new Date(s.zeit);
                 anstossMs = d.getTime();
                 terminStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'}) + ' - ' + d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
-                // Wenn die lokale Gerätezeit nach der Anstoßzeit liegt -> sofort sperren
                 if (Date.now() >= anstossMs) isL = true; 
             }
             
@@ -1020,6 +1053,12 @@
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
             
+            // NEU: Wenn das Spiel noch offen ist und wir noch kein Ziel haben, markieren wir es
+            if (!isL && !foundScrollTarget) {
+                card.id = 'scroll-target-game';
+                foundScrollTarget = true;
+            }
+
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
             let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED");
             let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
@@ -1033,7 +1072,6 @@
                 res = `<div style="background:rgba(242, 15, 121, 0.1); color:#F20F79; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
             }
 
-            // NEU: data-zeit Attribut an die Inputs gehängt
             card.innerHTML = `${badge}
                 <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
@@ -1043,6 +1081,16 @@
                 <div class="team-name away">${s.auswaerts}</div></div>${res}`;
             container.appendChild(card);
         });
+
+        // NEU: Automatischer Scroll-Befehl nach dem vollständigen Aufbau der Liste
+        if (foundScrollTarget) {
+            setTimeout(() => {
+                const target = document.getElementById('scroll-target-game');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300); // 300 Millisekunden Verzögerung stellen sicher, dass die Seite visuell bereit ist
+        }
     }
 
     function renderBonusFragen(fragen, userTipps) {
