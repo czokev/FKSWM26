@@ -167,6 +167,12 @@
             flex: 1 1 20%;
         }
 
+        .class-row { cursor: pointer; transition: background-color 0.2s; }
+        .class-row:hover { background-color: rgba(4, 104, 191, 0.05); }
+        .player-sub-table { width: 100%; border-collapse: collapse; margin-top: 0; margin-bottom: 0; }
+        .player-sub-row td { padding: 8px 4px; border-bottom: 1px solid #eee; color: #555; font-size: 0.9em; background-color: #f8f9fa; }
+        .player-sub-row:last-child td { border-bottom: none; }
+
         @media (max-width: 500px) {
             .matchup-row { gap: 5px; }
             .team-name { font-size: 0.85em; }
@@ -335,7 +341,7 @@
                 <table id="ranking-table">
                     <thead id="ranking-head">
                         <tr id="header-einzel">
-                            <th>Platz</th><th>Name</th><th>Klasse</th><th>Form</th><th style="text-align:right;">Punkte</th>
+                            <th>Platz</th><th>Name</th><th>Form</th><th style="text-align:right;">Punkte</th>
                         </tr>
                         <tr id="header-klasse" class="hidden">
                             <th>Platz</th><th>Klasse</th><th>Teilnehmer</th><th style="text-align:right;">Ø Punkte</th>
@@ -407,7 +413,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.36</div>
+<div id="version-display" class="version-number">v1.37</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -633,9 +639,7 @@
         
         if (mode === 'einzel') {
             // --- LOGIK FÜR EINZELSPIELER ---
-            // Kopie des Arrays erstellen, um Originaldaten nicht zu verändern
             let sortData = [...ranking].sort((a, b) => b.punkte - a.punkte);
-            
             let currentRank = 1;
             let lastPoints = null;
 
@@ -650,56 +654,54 @@
                 if (u.letzteSpiele) {
                     let totalLetzte = u.letzteSpiele.length;
                     u.letzteSpiele.forEach((p, idx) => {
-                        // Berechnet den Abstand zum aktuellsten Spiel. 
-                        // Alles was älter als 5 Spiele ist, bekommt die Klasse 'hide-mobile'
                         let hideClass = (totalLetzte - idx > 5) ? ' hide-mobile' : '';
                         f += `<div class="form-circle points-${p==3?'3':(p==1?'1':'0')}${hideClass}">${p}</div>`;
                     });
                 }
                 
-                // Trend-Icon bestimmen
                 let trendIcon = '';
                 if (u.trend === 1) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
                 else if (u.trend === -1) trendIcon = '<span style="color: #F20F79; font-size: 1em;">▼</span>';
                 else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
                 
-                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td>${u.klasse||'-'}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
+                // Spalte für die Klasse wurde hier entfernt
+                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td>${f}</div></td><td style="font-weight:bold; text-align:right;">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
         } else if (mode === 'klasse') {
-            // --- LOGIK FÜR KLASSEN (DURCHSCHNITT) INKL. TREND ---
+            // --- LOGIK FÜR KLASSEN INKL. AUFKLAPPBAREN SPIELERN ---
             let klassenDaten = {};
-
             const currentUserObj = ranking.find(u => u.name === currentUser);
             const currentUserKlasse = currentUserObj ? currentUserObj.klasse : "";
 
-            // 1. Daten aggregieren (Aktuelle Punkte UND Vorherige Punkte)
+            // 1. Daten aggregieren und Spieler zur jeweiligen Klasse speichern
             ranking.forEach(u => {
                 let gruppe = u.klasse ? u.klasse.trim() : "";
                 if (gruppe === "") gruppe = "Ohne Zuordnung"; 
 
                 if (!klassenDaten[gruppe]) {
-                    klassenDaten[gruppe] = { gesamtPunkte: 0, prevGesamtPunkte: 0, anzahlNutzer: 0 };
+                    klassenDaten[gruppe] = { gesamtPunkte: 0, prevGesamtPunkte: 0, anzahlNutzer: 0, spieler: [] };
                 }
                 klassenDaten[gruppe].gesamtPunkte += Number(u.punkte) || 0;
-                // Den vorherigen Punktestand aufaddieren
                 klassenDaten[gruppe].prevGesamtPunkte += Number(u.prevPts !== undefined ? u.prevPts : u.punkte) || 0;
                 klassenDaten[gruppe].anzahlNutzer += 1;
+                klassenDaten[gruppe].spieler.push(u); // Fügt den Spieler der Liste hinzu
             });
 
-            // 2. Durchschnitt berechnen und in Array umwandeln
+            // 2. Durchschnitt berechnen
             let klassenArray = Object.keys(klassenDaten).map(gruppenName => {
                 let daten = klassenDaten[gruppenName];
                 return {
                     name: gruppenName,
                     teilnehmer: daten.anzahlNutzer,
                     schnitt: daten.gesamtPunkte / daten.anzahlNutzer,
-                    prevSchnitt: daten.prevGesamtPunkte / daten.anzahlNutzer
+                    prevSchnitt: daten.prevGesamtPunkte / daten.anzahlNutzer,
+                    spieler: daten.spieler
                 };
             });
 
-            // 3. Vorheriges Ranking berechnen (um den Trend zu ermitteln)
+            // 3. Vorheriges Ranking berechnen
             let prevKlassenArray = [...klassenArray].sort((a, b) => b.prevSchnitt - a.prevSchnitt);
             let prevRankMap = {};
             let prevR = 1, prevS = null;
@@ -720,14 +722,16 @@
                 if (k.schnitt !== lastSchnitt) currentRank = i + 1;
                 lastSchnitt = k.schnitt;
                 
-                // Trend ermitteln
                 let oldRank = prevRankMap[k.name] || currentRank;
                 let trendIcon = '';
                 if (currentRank < oldRank) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
                 else if (currentRank > oldRank) trendIcon = '<span style="color: #F20F79; font-size: 1em;">▼</span>';
                 else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
 
+                // Hauptzeile für die Klasse erstellen
                 const tr = document.createElement('tr');
+                tr.className = 'class-row';
+                tr.onclick = function() { toggleClassDetails(i); }; // Klick-Event binden
                 
                 if (currentUserKlasse && k.name === currentUserKlasse) {
                     tr.style.background = "rgba(251, 121, 198, 0.15)"; 
@@ -737,12 +741,55 @@
                 
                 tr.innerHTML = `
                     <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
-                    <td>${k.name}</td>
+                    <td>${k.name} <span id="arrow-${i}" style="font-size: 0.8em; color: #888; margin-left: 5px;">▼</span></td>
                     <td>${k.teilnehmer}</td>
                     <td style="font-weight:bold; text-align:right; color:#0468BF;">${k.schnitt.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
+
+                // Versteckte Detailzeile für die Spieler erstellen
+                const detailRow = document.createElement('tr');
+                detailRow.id = `details-${i}`;
+                detailRow.className = 'hidden';
+                
+                // Spieler nach Punkten absteigend sortieren
+                let sortedPlayers = [...k.spieler].sort((a, b) => b.punkte - a.punkte);
+                
+                // Sub-Tabelle für die Spieler aufbauen
+                let playerHtml = '<td colspan="4" style="padding: 0; border-bottom: 1px solid #ddd;"><table class="player-sub-table">';
+                let spielerRang = 1;
+                let spielerPunkte = null;
+
+                sortedPlayers.forEach((p, pIdx) => {
+                    if (p.punkte !== spielerPunkte) spielerRang = pIdx + 1;
+                    spielerPunkte = p.punkte;
+                    
+                    let markierung = (p.name === currentUser) ? 'font-weight: bold; color: #0468BF;' : '';
+
+                    playerHtml += `<tr class="player-sub-row">
+                        <td style="width: 45px; text-align: right; padding-right: 10px;">${spielerRang}.</td>
+                        <td style="${markierung}">${p.name}</td>
+                        <td colspan="2" style="text-align:right; font-weight: bold; ${markierung}">${p.punkte}</td>
+                    </tr>`;
+                });
+                playerHtml += '</table></td>';
+                detailRow.innerHTML = playerHtml;
+                
+                tbody.appendChild(detailRow);
             });
+        }
+    }
+
+    // Hilfsfunktion zum Auf- und Zuklappen der Klassen-Details
+    function toggleClassDetails(index) {
+        const detailRow = document.getElementById(`details-${index}`);
+        const arrow = document.getElementById(`arrow-${index}`);
+        if (detailRow.classList.contains('hidden')) {
+            detailRow.classList.remove('hidden');
+            arrow.innerText = '▲';
+        } else {
+            detailRow.classList.add('hidden');
+            arrow.innerText = '▼';
         }
     }
 
