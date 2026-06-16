@@ -1093,7 +1093,7 @@
                                 callback: function(value) {
                                     // Versteckt Kosmetik-Werte außerhalb der realen Spieleranzahl
                                     if (value < 1 || value > totalPlayers) return null;
-                                    if (value === 1 || value === totalPlayers || value % dynamicStep === 0) {
+                                    if (value === 1 || value % 5 === 0) {
                                         return value;
                                     }
                                     return null;
