@@ -581,7 +581,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.44</div>
+<div id="version-display" class="version-number">v1.45</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -1343,7 +1343,7 @@
             }
 
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
-            let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED");
+            let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED" || s.apiStatus === "LIVE");
             let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
             
             let res = "";
