@@ -345,6 +345,28 @@
             text-transform: uppercase; 
             letter-spacing: 1px; 
         }
+
+        /* --- NEU: Ausgelagerte Klassen für JavaScript-Templates --- */
+
+        /* Ranking-Tabelle */
+        .ranking-rank-col { display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px; }
+        .ranking-pts-col { font-weight: bold; text-align: right; padding-right: 10px; }
+        .ranking-pts-highlight { color: #0468BF; }
+        .sub-pts-col { font-weight: bold; text-align: right; padding-right: 30px; }
+        .sub-rank-col { width: 40px; text-align: right; padding-right: 10px; }
+        .trend-up { color: #4CAF50; font-size: 1em; }
+        .trend-down { color: #F20F79; font-size: 1em; }
+        .trend-neutral { color: #FFCD61; font-size: 1.5em; }
+
+        /* Spiele & Bonus-Karten */
+        .badge-top-right { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; font-size: 14px; }
+        .game-meta { font-size: 13px; color: #666; text-align: center; margin-bottom: 8px; }
+        .bonus-q-text { font-weight: bold; text-align: center; margin: 10px 0; }
+
+        /* Ergebnis-Boxen */
+        .game-result-box { font-size: 14px; padding: 5px; border-radius: 4px; margin-top: 10px; text-align: center; font-weight: bold; }
+        .game-result-box.final { background: rgba(4, 104, 191, 0.1); color: #0468BF; }
+        .game-result-box.live { background: rgba(242, 15, 121, 0.1); color: #F20F79; }
     </style>
 
     <script>
@@ -373,7 +395,7 @@
 <body>
 
 <div class="container">
-    <img src="header.jpg" alt="WM-Tippspiel Header" class="header-image" onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block';">
+    <img src="header.jpg" alt="WM-Tippspiel Header" class="header-image" onerror="this.style.display='none'; $('fallback-title').style.display='block';">
     <h1 id="fallback-title" style="display:none; margin-top: 0;">WM-Tippspiel</h1>
 
     <div id="message-box"></div>
@@ -437,31 +459,31 @@
         </div>
 
         <div class="nav-buttons">
-            <button id="nav-tipps" class="btn-half btn-spiele" onclick="showSection('tipps')">⚽️ Spiele tippen</button>
-            <button id="nav-bonus" class="btn-half btn-bonus" onclick="showSection('bonus')">⭐️ Bonusfragen</button>
-            <button id="nav-dashboard" class="btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
-            <button id="nav-profil" class="btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
-            <button id="nav-regeln" class="btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
+            <button id="nav-tipps" class="nav-btn btn-half btn-spiele" onclick="showSection('tipps')">⚽️ Spiele tippen</button>
+            <button id="nav-bonus" class="nav-btn btn-half btn-bonus" onclick="showSection('bonus')">⭐️ Bonusfragen</button>
+            <button id="nav-dashboard" class="nav-btn btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
+            <button id="nav-profil" class="nav-btn btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
+            <button id="nav-regeln" class="nav-btn btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
         </div>
         
-        <div id="start-section" class="hidden">
+        <div id="start-section" class="view-section hidden">
             <p style="text-align: center;">Wähle oben einen Bereich aus, um loszulegen.</p>
             <div id="loader-start" class="loader hidden"></div>
         </div>
 
-        <div id="tipps-section" class="hidden">
+        <div id="tipps-section" class="view-section hidden">
             <h2>⚽️ Spiele tippen</h2>
             <div id="loader-tipps" class="loader hidden"></div>
             <div id="games-container"></div>
         </div>
 
-        <div id="bonus-section" class="hidden">
+        <div id="bonus-section" class="view-section hidden">
             <h2>⭐️ Bonusfragen</h2>
             <div id="loader-bonus" class="loader hidden"></div>
             <div id="bonus-container"></div>
         </div>
 
-        <div id="dashboard-section" class="hidden">
+        <div id="dashboard-section" class="view-section hidden">
             <h2>🏆 Ranking</h2>
             
             <div class="nav-buttons" style="margin-bottom: 15px; justify-content: center;">
@@ -491,7 +513,7 @@
             </div>
         </div>
 
-        <div id="profil-section" class="hidden">
+        <div id="profil-section" class="view-section hidden">
             <h2>🚀 Statistik</h2>
 
             <div id="player-card-container" class="hidden">
@@ -561,7 +583,7 @@
             </div>
         </div>
 
-        <div id="regeln-section" class="hidden">
+        <div id="regeln-section" class="view-section hidden">
             <h2>❗️ Wichtige Infos</h2>
             <div id="regeln-content" class="rules-box">Regeln werden geladen...</div>
             
@@ -581,7 +603,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.45</div>
+<div id="version-display" class="version-number">v1.46</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -597,13 +619,29 @@
 
     Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
+    // --- NEU: DOM-Helper und UI-Cache ---
+    // Ersetzt das lange $ durch ein kurzes $
+    const $ = id => document.getElementById(id);
+
+    // Häufig genutzte statische Elemente werden einmalig geladen
+    const UI = {};
+    window.addEventListener('DOMContentLoaded', () => {
+        UI.msgBox = $('message-box');
+        UI.floatBox = $('floating-message-box');
+        UI.feedbackBox = $('feedback-message-box');
+        UI.authLoader = $('auth-loader');
+        UI.loginView = $('login-view');
+        UI.regView = $('register-view');
+        UI.versionDisplay = $('version-display');
+    });
+
     function switchRankingMode(mode) {
         currentRankingMode = mode;
         
-        const btnEinzel = document.getElementById('btn-ranking-einzel');
-        const btnKlasse = document.getElementById('btn-ranking-klasse');
-        const headEinzel = document.getElementById('header-einzel');
-        const headKlasse = document.getElementById('header-klasse');
+        const btnEinzel = $('btn-ranking-einzel');
+        const btnKlasse = $('btn-ranking-klasse');
+        const headEinzel = $('header-einzel');
+        const headKlasse = $('header-klasse');
         
         // Definition der Farbtöne für die Unterscheidung
         const farbeAktiv = '#cdde10';    // Ein etwas dunkleres, sattes Grün
@@ -647,31 +685,29 @@
     }
     function getPinFromContainer(id) {
         let pin = "";
-        document.getElementById(id).querySelectorAll('.pin-box').forEach(i => pin += i.value);
+        $(id).querySelectorAll('.pin-box').forEach(i => pin += i.value);
         return pin;
     }
     
     function showMessage(msg, isSuccess = false) {
-        const box = document.getElementById('message-box');
-        box.style.color = isSuccess ? '#0468BF' : '#F20F79';
-        box.innerText = msg;
-        setTimeout(() => box.innerText = '', 5000);
+        UI.msgBox.style.color = isSuccess ? '#0468BF' : '#F20F79';
+        UI.msgBox.innerText = msg;
+        setTimeout(() => UI.msgBox.innerText = '', 5000);
     }
     
     function showFloatingMessage(msg, isSuccess = false) {
-        const box = document.getElementById('floating-message-box');
-        box.style.color = isSuccess ? '#0468BF' : '#F20F79';
-        box.innerText = msg;
-        setTimeout(() => box.innerText = '', 5000);
+        UI.floatBox.style.color = isSuccess ? '#0468BF' : '#F20F79';
+        UI.floatBox.innerText = msg;
+        setTimeout(() => UI.floatBox.innerText = '', 5000);
     }
 
     function toggleAuthView() {
-        document.getElementById('login-view').classList.toggle('hidden');
-        document.getElementById('register-view').classList.toggle('hidden');
+        UI.loginView.classList.toggle('hidden');
+        UI.regView.classList.toggle('hidden');
     }
 
     function downloadCredentials() {
-        const element = document.getElementById('credentials-box');
+        const element = $('credentials-box');
         html2canvas(element).then(canvas => {
             const link = document.createElement('a');
             link.download = 'Tippspiel_Zugangsdaten.png';
@@ -685,7 +721,7 @@
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getKlassen' }) });
             const result = await res.json();
             if (result.success) {
-                const select = document.getElementById('reg-klasse');
+                const select = $('reg-klasse');
                 select.innerHTML = ''; 
                 result.klassen.forEach(k => {
                     let opt = document.createElement('option');
@@ -699,92 +735,101 @@
     window.onload = loadKlassenDynamisch;
 
     async function login() {
-        const n = document.getElementById('login-name').value.trim();
+        const n = $('login-name').value.trim();
         const p = getPinFromContainer('login-pin-container'); 
         if (!n || p.length !== 4) return showMessage("Name/PIN unvollständig.");
-        document.getElementById('auth-loader').classList.remove('hidden');
+        $('auth-loader').classList.remove('hidden');
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
             const result = await res.json();
             if (result.success) {
                 currentUser = result.fullName || n; currentPassword = p;
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('version-display').classList.add('hidden'); 
-                document.getElementById('main-view').classList.remove('hidden');
+                $('login-view').classList.add('hidden');
+                $('version-display').classList.add('hidden'); 
+                $('main-view').classList.remove('hidden');
                 showSection('start');
             } else showMessage(result.error);
         } catch (e) { showMessage("Fehler. Lade die Seite nochmal neu!"); } 
-        finally { document.getElementById('auth-loader').classList.add('hidden'); }
+        finally { $('auth-loader').classList.add('hidden'); }
     }
 
     async function register() {
-        const n = document.getElementById('reg-name').value.trim();
+        const n = $('reg-name').value.trim();
         const p = getPinFromContainer('reg-pin-container'); 
-        const k = document.getElementById('reg-klasse').value;
+        const k = $('reg-klasse').value;
         if (!n || p.length !== 4 || !k) return showMessage("Eingaben unvollständig.");
-        document.getElementById('auth-loader').classList.remove('hidden');
+        $('auth-loader').classList.remove('hidden');
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'register', name: n, password: p, klasse: k }) });
             const result = await res.json();
             if (result.success) {
                 currentUser = result.fullName || n; currentPassword = p;
-                document.getElementById('sum-name').innerText = currentUser; 
-                document.getElementById('sum-pin').innerText = p;
-                document.getElementById('register-view').classList.add('hidden');
-                document.getElementById('version-display').classList.add('hidden'); 
-                document.getElementById('summary-view').classList.remove('hidden');
+                $('sum-name').innerText = currentUser; 
+                $('sum-pin').innerText = p;
+                $('register-view').classList.add('hidden');
+                $('version-display').classList.add('hidden'); 
+                $('summary-view').classList.remove('hidden');
             } else showMessage(result.error);
         } catch (err) { showMessage("Fehler. Lade die Seite nochmal neu!"); } 
-        finally { document.getElementById('auth-loader').classList.add('hidden'); }
+        finally { $('auth-loader').classList.add('hidden'); }
     }
 
     function proceedToMain() {
-        document.getElementById('summary-view').classList.add('hidden');
-        document.getElementById('main-view').classList.remove('hidden');
+        $('summary-view').classList.add('hidden');
+        $('main-view').classList.remove('hidden');
         showSection('start');
     }
 
     function showSection(id) {
-        ['start', 'tipps', 'bonus', 'dashboard', 'profil', 'regeln'].forEach(s => {
-            document.getElementById(s + '-section').classList.add('hidden');
-            if (document.getElementById('nav-' + s)) document.getElementById('nav-' + s).classList.remove('active-btn');
-        });
+        // 1. Alle Sektionen und Buttons systematisch zurücksetzen
+        document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-btn'));
         
-        document.getElementById(id + '-section').classList.remove('hidden');
-        if (id !== 'start') document.getElementById('nav-' + id).classList.add('active-btn');
+        // 2. Gewählte Sektion und dazugehörigen Button aktivieren
+        const targetSection = $(id + '-section');
+        if (targetSection) targetSection.classList.remove('hidden');
+        
+        const targetBtn = $('nav-' + id);
+        if (targetBtn) targetBtn.classList.add('active-btn');
 
-        if (id === 'start') document.getElementById('start-header-section').classList.remove('hidden');
-        else document.getElementById('start-header-section').classList.add('hidden');
+        // 3. Sonderlogik: Header für die Startseite ein-/ausblenden
+        const startHeader = $('start-header-section');
+        if (startHeader) {
+            if (id === 'start') startHeader.classList.remove('hidden');
+            else startHeader.classList.add('hidden');
+        }
 
-        const bar = document.getElementById('floating-save-bar');
+        // 4. Sonderlogik: Floating-Save-Bar steuern
+        const bar = $('floating-save-bar');
         if (id === 'tipps') {
             bar.classList.remove('hidden');
-            document.getElementById('btn-save-all').classList.remove('hidden');
-            document.getElementById('btn-save-bonus').classList.add('hidden');
+            $('btn-save-all').classList.remove('hidden');
+            $('btn-save-bonus').classList.add('hidden');
         } else if (id === 'bonus') {
             bar.classList.remove('hidden');
-            document.getElementById('btn-save-all').classList.add('hidden');
-            document.getElementById('btn-save-bonus').classList.remove('hidden');
+            $('btn-save-all').classList.add('hidden');
+            $('btn-save-bonus').classList.remove('hidden');
         } else {
             bar.classList.add('hidden');
         }
         
+        // 5. Daten laden
         loadData(id);
     }
 
     function applyDataToUI(result, context) {
         if (context === 'start' && result.news && result.news.trim() !== "") {
-            const news = document.getElementById('news-container');
+            const news = $('news-container');
             news.innerHTML = result.news; 
             news.classList.remove('hidden');
         }
     
         if (result.regeln && result.regeln.trim() !== "") {
-            document.getElementById('regeln-content').innerHTML = result.regeln;
+            $('regeln-content').innerHTML = result.regeln;
         }
     
         if (result.userFeedback !== undefined) {
-            document.getElementById('feedback-text').value = result.userFeedback;
+            $('feedback-text').value = result.userFeedback;
         }
     
         renderGames(result.spiele, result.userTipps);
@@ -799,7 +844,7 @@
     }
 
     async function loadData(context) {
-        const loader = document.getElementById('loader-' + context);
+        const loader = $('loader-' + context);
         if (loader) loader.classList.remove('hidden');
     
         // Definition eines eindeutigen Schlüssels für den angemeldeten Benutzer
@@ -838,7 +883,7 @@
     }
 
     function renderRanking(ranking, mode = 'einzel') {
-        const tbody = document.getElementById('ranking-body');
+        const tbody = $('ranking-body');
         tbody.innerHTML = '';
         
         if (mode === 'einzel') {
@@ -865,12 +910,12 @@
                 f += `</div>`;
                 
                 let trendIcon = '';
-                if (u.trend === 1) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
-                else if (u.trend === -1) trendIcon = '<span style="color: #F20F79; font-size: 1em;">▼</span>';
-                else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
+                if (u.trend === 1) trendIcon = '<span class="trend-up">▲</span>';
+                else if (u.trend === -1) trendIcon = '<span class="trend-down">▼</span>';
+                else trendIcon = '<span class="trend-neutral">●</span>';
                 
                 // Spalte für die Klasse wurde hier entfernt
-                tr.innerHTML = `<td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td style="font-weight:bold; text-align:right; padding-right: 10px;">${u.punkte}</td>`;
+                tr.innerHTML = `<td><div class="ranking-rank-col"><span>${currentRank}.</span><span>${trendIcon}</span></div></td><td>${u.name}</td><td class="dynamic-form-col">${f}</td><td class="ranking-pts-col">${u.punkte}</td>`;
                 tbody.appendChild(tr);
             });
 
@@ -929,9 +974,9 @@
                 
                 let oldRank = prevRankMap[k.name] || currentRank;
                 let trendIcon = '';
-                if (currentRank < oldRank) trendIcon = '<span style="color: #4CAF50; font-size: 1em;">▲</span>';
-                else if (currentRank > oldRank) trendIcon = '<span style="color: #F20F79; font-size: 1em;">▼</span>';
-                else trendIcon = '<span style="color: #FFCD61; font-size: 1.5em;">●</span>';
+                if (currentRank < oldRank) trendIcon = '<span class="trend-up">▲</span>';
+                else if (currentRank > oldRank) trendIcon = '<span class="trend-down">▼</span>';
+                else trendIcon = '<span class="trend-neutral">●</span>';
 
                 // Hauptzeile für die Klasse erstellen
                 const tr = document.createElement('tr');
@@ -948,10 +993,10 @@
                 
                 // Der Pfeil bekommt die neue Klasse 'toggle-arrow'
                 tr.innerHTML = `
-                    <td><div style="display: flex; align-items: center; justify-content: space-between; width: 45px; padding-left: 6px;"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
-                    <td><strong>${k.name}</strong> <span id="arrow-${i}" class="toggle-arrow">▼</span></td>
-                    <td>${k.teilnehmer} <span style="font-size: 0.8em; color: #888;"></span></td>
-                    <td style="font-weight:bold; text-align:right; color:#0468BF; padding-right: 10px;">${k.schnitt.toFixed(2)}</td>
+                <td><div class="ranking-rank-col"><span>${currentRank}.</span><span>${trendIcon}</span></div></td>
+                <td><strong>${k.name}</strong> <span id="arrow-${i}" class="toggle-arrow">▼</span></td>
+                <td>${k.teilnehmer}</td>
+                <td class="ranking-pts-col ranking-pts-highlight">${k.schnitt.toFixed(2)}</td>
                 `;
                 tbody.appendChild(tr);
 
@@ -976,9 +1021,9 @@
                     let highlightStyle = (p.name === currentUser) ? 'background-color: rgba(251, 121, 198, 0.15);' : '';
 
                     playerHtml += `<tr class="player-sub-row">
-                        <td style="width: 45px; text-align: right; padding-right: 10px; ${highlightStyle}">${spielerRang}.</td>
-                        <td style="${highlightStyle}">${p.name}</td>
-                        <td colspan="2" style="text-align:right; font-weight: bold; padding-right: 10px; ${highlightStyle}">${p.punkte}</td>
+                        <td class="sub-rank-col" style="${highlightStyle}">${spielerRang}.</td>
+                        <td style="text-align: left; ${highlightStyle}">${p.name}</td>
+                        <td colspan="2" class="sub-pts-col" style="${highlightStyle}">${p.punkte}</td>
                     </tr>`;
                 });
                 playerHtml += '</table></td>';
@@ -991,9 +1036,9 @@
 
     // Hilfsfunktion zum Auf- und Zuklappen der Klassen-Details
     function toggleClassDetails(index) {
-        const detailRow = document.getElementById(`details-${index}`);
-        const arrow = document.getElementById(`arrow-${index}`);
-        const classRow = document.getElementById(`class-row-${index}`);
+        const detailRow = $(`details-${index}`);
+        const arrow = $(`arrow-${index}`);
+        const classRow = $(`class-row-${index}`);
         
         if (detailRow.classList.contains('hidden')) {
             detailRow.classList.remove('hidden');
@@ -1007,16 +1052,16 @@
     }
 
     function renderProfil(history, rank, points, spiele, userTipps, bonusTipps, totalPlayersCount) {
-        document.getElementById('profil-platz-display').innerText = rank;
-        document.getElementById('profil-punkte-display').innerText = points;
+        $('profil-platz-display').innerText = rank;
+        $('profil-punkte-display').innerText = points;
 
         let totalGamesInTournament = spiele.length;
         let playedGames = userTipps.filter(t => t.tippH !== "" || t.tippA !== "").length;
-        document.getElementById('profil-spiele-display').innerText = playedGames + "/" + totalGamesInTournament;
+        $('profil-spiele-display').innerText = playedGames + "/" + totalGamesInTournament;
 
         let finishedGamesCount = spiele.filter(s => s.ergH !== "" && s.ergA !== "").length;
         let avgPoints = finishedGamesCount > 0 ? (points / finishedGamesCount).toFixed(2) : "0.00";
-        document.getElementById('profil-schnitt-display').innerText = avgPoints;
+        $('profil-schnitt-display').innerText = avgPoints;
 
         // Prüfung auf Turnierende: Alle Spiele haben ein Endergebnis
         let isTurnierBeendet = spiele.length > 0 && spiele.every(s => s.ergH !== "" && s.ergA !== "");
@@ -1051,7 +1096,7 @@
             pointHistoryLabels.push('Spiel ' + (index + 1));
         });
 
-        const ctxPointsHistory = document.getElementById('pointsHistoryChart').getContext('2d');
+        const ctxPointsHistory = $('pointsHistoryChart').getContext('2d');
         if (pointsHistoryChartInstance) pointsHistoryChartInstance.destroy();
 
         pointsHistoryChartInstance = new Chart(ctxPointsHistory, {
@@ -1158,7 +1203,7 @@
         });
 
         if (pointsPieChartInstance) pointsPieChartInstance.destroy();
-        pointsPieChartInstance = new Chart(document.getElementById('pointsPieChart').getContext('2d'), {
+        pointsPieChartInstance = new Chart($('pointsPieChart').getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['Exakt', 'Tendenz', 'Falsch'],
@@ -1188,7 +1233,7 @@
         });
 
         // --- LINIENDIAGRAMM: PLATZIERUNGSVERLAUF (MAGENTA) ---
-        const ctxRank = document.getElementById('rankingChart').getContext('2d');
+        const ctxRank = $('rankingChart').getContext('2d');
         if (rankingChartInstance) rankingChartInstance.destroy();
 
         let gradient = ctxRank.createLinearGradient(0, 0, 0, 200); 
@@ -1300,20 +1345,20 @@
         let minWidthPoints = pointHistoryLabels.length * 40;
         let minWidthRanking = chartLabels.length * 40;
         
-        document.getElementById('pointsHistoryInner').style.minWidth = minWidthPoints + 'px';
-        document.getElementById('rankingChartInner').style.minWidth = minWidthRanking + 'px';
+        $('pointsHistoryInner').style.minWidth = minWidthPoints + 'px';
+        $('rankingChartInner').style.minWidth = minWidthRanking + 'px';
 
         // Automatisches Scrollen an den rechten Rand (aktuellster Stand)
         setTimeout(() => {
-            const wrapPoints = document.getElementById('scroll-wrapper-points');
-            const wrapRanking = document.getElementById('scroll-wrapper-ranking');
+            const wrapPoints = $('scroll-wrapper-points');
+            const wrapRanking = $('scroll-wrapper-ranking');
             if (wrapPoints) wrapPoints.scrollLeft = wrapPoints.scrollWidth;
             if (wrapRanking) wrapRanking.scrollLeft = wrapRanking.scrollWidth;
         }, 300);
     }
 
     function renderGames(spiele, userTipps) {
-        const container = document.getElementById('games-container');
+        const container = $('games-container');
         container.innerHTML = '';
         
         // NEU: Flag, um das erste offene Spiel zu finden
@@ -1344,19 +1389,19 @@
 
             let hasFinalResult = (s.ergH !== "" && s.ergA !== "");
             let isLive = (s.apiStatus === "IN_PLAY" || s.apiStatus === "PAUSED" || s.apiStatus === "LIVE");
-            let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}" style="position:absolute; top:8px; right:8px; width:28px; height:28px; font-size:14px;">${t.punkte}</div>` : "";
-            
+            let badge = (isL && hasFinalResult && t.punkte !== '') ? `<div class="form-circle badge-top-right points-${t.punkte==3?'3':(t.punkte==1?'1':'0')}">${t.punkte}</div>` : "";
+
             let res = "";
             if (hasFinalResult) {
-                res = `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">Endstand: ${s.ergH}:${s.ergA}</div>`;
+                res = `<div class="game-result-box final">Endstand: ${s.ergH}:${s.ergA}</div>`;
             } else if (isLive) {
                 let lh = s.liveH !== "" ? s.liveH : "0";
                 let la = s.liveA !== "" ? s.liveA : "0";
-                res = `<div style="background:rgba(242, 15, 121, 0.1); color:#F20F79; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
+                res = `<div class="game-result-box live"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
             }
 
             card.innerHTML = `${badge}
-                <div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
+                <div class="game-meta"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
                 <div class="score-inputs">
                 <input type="number" inputmode="numeric" pattern="[0-9]*" id="heim_${s.id}" data-zeit="${anstossMs}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
@@ -1368,7 +1413,7 @@
         // NEU: Automatischer Scroll-Befehl nach dem vollständigen Aufbau der Liste
         if (foundScrollTarget) {
             setTimeout(() => {
-                const target = document.getElementById('scroll-target-game');
+                const target = $('scroll-target-game');
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -1377,7 +1422,7 @@
     }
 
     function renderBonusFragen(fragen, userTipps) {
-        const container = document.getElementById('bonus-container');
+        const container = $('bonus-container');
         container.innerHTML = '';
         fragen.forEach(f => {
             let isL = f.status === 'gesperrt';
@@ -1395,7 +1440,9 @@
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tipp !== '' ? ' tipped-game' : ''));
             let badge = "";
             if (isL && t.punkte !== '') {
-                badge = `<div class="form-circle" style="background-color: ${t.punkte > 0 ? '#0468BF' : '#F20F79'}; position:absolute; top:8px; right:8px; width:28px; height:28px; color:white; font-size:14px;">${t.punkte}</div>`;
+                // Falls Punkte negativ sein könnten, behalten wir hier das Inline-Background-Color als Ausnahme für dynamische Farben bei, 
+                // ansonsten geben wir ihm die CSS-Klasse:
+                badge = `<div class="form-circle badge-top-right" style="background-color: ${t.punkte > 0 ? '#0468BF' : '#F20F79'};">${t.punkte}</div>`;
             }
             
             let inputElementHtml = "";
@@ -1411,25 +1458,24 @@
             // NEU: Lösung anzeigen, wenn die Frist abgelaufen ist und ein Ergebnis vorliegt
             let res = "";
             if (isL && f.echtesErg && f.echtesErg.toString().trim() !== "") {
-                // Das erste Zeichen großschreiben, falls es in der Tabelle klein geschrieben wurde
                 let anzeigeErg = f.echtesErg.toString().charAt(0).toUpperCase() + f.echtesErg.toString().slice(1);
-                res = `<div style="background:rgba(4, 104, 191, 0.1); color:#0468BF; font-size:14px; padding:5px; border-radius:4px; margin-top:10px; text-align:center; font-weight:bold;">${anzeigeErg}</div>`;
+                res = `<div class="game-result-box final">${anzeigeErg}</div>`;
             }
 
-            card.innerHTML = `${badge}<div style="font-size:13px; color:#666; text-align:center; margin-bottom:8px;">${terminStr} ${isL ? '🔒' : ''}</div><div style="font-weight:bold; text-align:center; margin:10px 0;">${f.frage}</div>${inputElementHtml}${res}`;
+            card.innerHTML = `${badge}<div class="game-meta">${terminStr} ${isL ? '🔒' : ''}</div><div class="bonus-q-text">${f.frage}</div>${inputElementHtml}${res}`;
             container.appendChild(card);
         });
     }
 
     async function saveAllTipps() {
-        const btn = document.getElementById('btn-save-all');
+        const btn = $('btn-save-all');
         btn.disabled = true; btn.innerText = "Speichere...";
         let tipps = [];
         let zuSpaetCount = 0; // Zähler für Spiele, bei denen die Zeit beim Klicken abgelaufen war
         
         document.querySelectorAll('input[id^="heim_"]').forEach(h => {
             const id = h.id.split('_')[1];
-            const a = document.getElementById('auswaerts_' + id);
+            const a = $('auswaerts_' + id);
             
             // NEU: Echtzeit-Prüfung beim Klick auf Speichern
             let anstossMs = parseInt(h.getAttribute('data-zeit')) || 0;
@@ -1464,7 +1510,7 @@
     }
 
     async function saveBonusTipps() {
-        const btn = document.getElementById('btn-save-bonus');
+        const btn = $('btn-save-bonus');
         btn.disabled = true; btn.innerText = "Speichere...";
         let tipps = [];
         let zuSpaetCount = 0;
@@ -1504,14 +1550,14 @@
     }
     
     function showFeedbackMessage(msg, isSuccess = false) {
-        const box = document.getElementById('feedback-message-box');
-        box.style.color = isSuccess ? '#0468BF' : '#F20F79'; box.innerText = msg;
-        setTimeout(() => box.innerText = '', 5000);
+        UI.feedbackBox.style.color = isSuccess ? '#0468BF' : '#F20F79'; 
+        UI.feedbackBox.innerText = msg;
+        setTimeout(() => UI.feedbackBox.innerText = '', 5000);
     }
 
     async function saveFeedback() {
-        const btn = document.getElementById('btn-save-feedback');
-        const text = document.getElementById('feedback-text').value.trim();
+        const btn = $('btn-save-feedback');
+        const text = $('feedback-text').value.trim();
         btn.disabled = true; btn.innerText = "Speichere...";
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'saveFeedback', name: currentUser, password: currentPassword, text: text }) });
@@ -1523,13 +1569,13 @@
     }
 
     function renderPlayerCard(name, rank, points, avgPoints) {
-        document.getElementById('pc-name').innerText = name;
-        document.getElementById('pc-rank').innerText = rank;
-        document.getElementById('pc-points').innerText = points;
-        document.getElementById('pc-avg').innerText = avgPoints;
+        $('pc-name').innerText = name;
+        $('pc-rank').innerText = rank;
+        $('pc-points').innerText = points;
+        $('pc-avg').innerText = avgPoints;
     
         // Karte sichtbar machen
-        document.getElementById('player-card-container').classList.remove('hidden');
+        $('player-card-container').classList.remove('hidden');
     }
 </script>
 </body>
