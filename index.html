@@ -617,6 +617,8 @@
     let pointsPieChartInstance = null; 
     let pointsHistoryChartInstance = null; 
 
+    let scrollTimeout = null;
+
     Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
     // --- NEU: DOM-Helper und UI-Cache ---
@@ -1412,12 +1414,18 @@
 
         // NEU: Automatischer Scroll-Befehl nach dem vollständigen Aufbau der Liste
         if (foundScrollTarget) {
-            setTimeout(() => {
+            // Löscht den vorherigen Countdown, falls die Funktion durch das Caching mehrfach feuert
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            
+            // Startet den Countdown neu. Nur der allerletzte Durchlauf wird tatsächlich ausgeführt.
+            scrollTimeout = setTimeout(() => {
                 const target = $('scroll-target-game');
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }, 300); // 300 Millisekunden Verzögerung stellen sicher, dass die Seite visuell bereit ist
+            }, 350); 
         }
     }
 
