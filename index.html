@@ -367,6 +367,22 @@
         .game-result-box { font-size: 14px; padding: 5px; border-radius: 4px; margin-top: 10px; text-align: center; font-weight: bold; }
         .game-result-box.final { background: rgba(4, 104, 191, 0.1); color: #0468BF; }
         .game-result-box.live { background: rgba(242, 15, 121, 0.1); color: #F20F79; }
+
+        /* Verhindert das Hochrutschen der Seite (Layout Shift) nach dem Laden */
+        .loader.hidden {
+            display: block !important; /* Verhindert das Entfernen aus dem Layout */
+            opacity: 0;                /* Macht den Balken unsichtbar */
+            visibility: hidden;        /* Verhindert Klicks/Interaktionen */
+            transition: opacity 0.3s ease; /* Optional: Lässt den Ladebalken weich ausblenden */
+        }
+
+        .ko-info {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #ff802c;
+            margin: 5px 0;
+            font-weight: 500;
+        }
     </style>
 
     <script>
@@ -603,7 +619,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.46</div>
+<div id="version-display" class="version-number">v1.47</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -618,6 +634,7 @@
     let pointsHistoryChartInstance = null; 
 
     let scrollTimeout = null;
+    let hasAutoScrolled = false;
 
     Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
@@ -802,8 +819,9 @@
         }
 
         // 4. Sonderlogik: Floating-Save-Bar steuern
-        const bar = $('floating-save-bar');
+        const bar = $('floating-save-bar'); // (bzw. document.getElementById, falls Sie $ nicht nutzen)
         if (id === 'tipps') {
+            hasAutoScrolled = false; // NEU: Erlaubt das Scrollen genau einmal, wenn die Ansicht geöffnet wird
             bar.classList.remove('hidden');
             $('btn-save-all').classList.remove('hidden');
             $('btn-save-bonus').classList.add('hidden');
@@ -1361,9 +1379,17 @@
 
     function renderGames(spiele, userTipps) {
         const container = $('games-container');
+        
+        // --- ANTI-JITTER-FIX (Schritt 1) ---
+        // Wenn bereits Spiele angezeigt werden (Cache war schneller), 
+        // frieren wir die aktuelle Höhe ein, um ein Zusammenfallen des Layouts zu verhindern.
+        if (container.children.length > 0) {
+            container.style.height = container.offsetHeight + 'px';
+        }
+
         container.innerHTML = '';
         
-        // NEU: Flag, um das erste offene Spiel zu finden
+        // Flag, um das erste offene Spiel zu finden
         let foundScrollTarget = false; 
 
         spiele.forEach(s => {
@@ -1383,7 +1409,7 @@
             const card = document.createElement('div');
             card.className = 'game-card' + (isL ? ' locked-game' : (t.tippH !== '' ? ' tipped-game' : ''));
             
-            // NEU: Wenn das Spiel noch offen ist und wir noch kein Ziel haben, markieren wir es
+            // Wenn das Spiel noch offen ist und wir noch kein Ziel haben, markieren wir es
             if (!isL && !foundScrollTarget) {
                 card.id = 'scroll-target-game';
                 foundScrollTarget = true;
@@ -1402,8 +1428,15 @@
                 res = `<div class="game-result-box live"><span class="pulsating-circle"></span> Live ${lh}:${la}</div>`;
             }
 
+            let koHinweis = "";
+            if (s.phase.includes("Achtelfinale") || s.phase.includes("Viertelfinale") || s.phase.includes("Sechzehntelfinale") ||
+                s.phase.includes("Halbfinale") || s.phase.includes("Finale")) {
+                koHinweis = `<div class="ko-info">Ergebnis nach 90 Min. + Nachspielzeit zählt</div>`;
+            }
+
             card.innerHTML = `${badge}
                 <div class="game-meta"><strong>${s.phase}</strong> | ${terminStr} ${isL ? '🔒' : ''}</div>
+                ${koHinweis}
                 <div class="matchup-row"><div class="team-name home">${s.heim}</div>
                 <div class="score-inputs">
                 <input type="number" inputmode="numeric" pattern="[0-9]*" id="heim_${s.id}" data-zeit="${anstossMs}" value="${t.tippH}" ${isL?'disabled':''}><span>:</span>
@@ -1412,20 +1445,22 @@
             container.appendChild(card);
         });
 
-        // NEU: Automatischer Scroll-Befehl nach dem vollständigen Aufbau der Liste
-        if (foundScrollTarget) {
-            // Löscht den vorherigen Countdown, falls die Funktion durch das Caching mehrfach feuert
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
-            }
+        // --- ANTI-JITTER-FIX (Schritt 2) ---
+        // Nachdem die neuen Elemente im DOM sind, geben wir die Höhe wieder frei.
+        setTimeout(() => {
+            container.style.height = 'auto';
+        }, 50);
+
+        // Automatischer Scroll-Befehl mit strikter Einmal-Sperre
+        if (foundScrollTarget && !hasAutoScrolled) {
+            hasAutoScrolled = true; // SPERRE AKTIVIERT: Der zweite Ladedurchlauf wird diesen Block ignorieren
             
-            // Startet den Countdown neu. Nur der allerletzte Durchlauf wird tatsächlich ausgeführt.
-            scrollTimeout = setTimeout(() => {
+            setTimeout(() => {
                 const target = $('scroll-target-game');
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }, 350); 
+            }, 300);
         }
     }
 
