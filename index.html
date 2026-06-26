@@ -619,7 +619,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.47</div>
+<div id="version-display" class="version-number">v1.48</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -1431,7 +1431,7 @@
             let koHinweis = "";
             if (s.phase.includes("Achtelfinale") || s.phase.includes("Viertelfinale") || s.phase.includes("Sechzehntelfinale") ||
                 s.phase.includes("Halbfinale") || s.phase.includes("Finale")) {
-                koHinweis = `<div class="ko-info">Ergebnis nach 90 Min. + Nachspielzeit zählt</div>`;
+                koHinweis = `<div class="ko-info">Ergebnis nach 90 Min. + Nachspielzeit</div>`;
             }
 
             card.innerHTML = `${badge}
