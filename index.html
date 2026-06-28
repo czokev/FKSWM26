@@ -480,6 +480,7 @@
             <button id="nav-dashboard" class="nav-btn btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
             <button id="nav-profil" class="nav-btn btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
             <button id="nav-regeln" class="nav-btn btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
+            <button id="nav-admin-dashboard" class="nav-btn hidden" onclick="showSection('admin-dashboard')">Admin</button>
         </div>
         
         <div id="start-section" class="view-section hidden">
@@ -491,6 +492,18 @@
             <h2>⚽️ Spiele tippen</h2>
             <div id="loader-tipps" class="loader hidden"></div>
             <div id="games-container"></div>
+        </div>
+
+        <div id="admin-dashboard-section" class="view-section hidden">
+            <h2>Admin-Bereich</h2>
+            <hr>
+            
+            <div class="admin-card">
+                <h3>Spieldaten synchronisieren</h3>
+                <p>Holt die neuesten Ergebnisse und Spiele sofort von der API ab.</p>
+                <button id="btn-admin-api" onclick="adminTriggerApi()">API jetzt aktualisieren</button>
+                <div id="admin-api-status" style="margin-top: 10px; font-weight: bold;"></div>
+            </div>
         </div>
 
         <div id="bonus-section" class="view-section hidden">
@@ -597,6 +610,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
         <div id="regeln-section" class="view-section hidden">
@@ -619,7 +633,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.48</div>
+<div id="version-display" class="version-number">v1.49</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -756,20 +770,42 @@
     async function login() {
         const n = $('login-name').value.trim();
         const p = getPinFromContainer('login-pin-container'); 
+        
         if (!n || p.length !== 4) return showMessage("Name/PIN unvollständig.");
+        
         $('auth-loader').classList.remove('hidden');
+        
         try {
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
             const result = await res.json();
+            
             if (result.success) {
-                currentUser = result.fullName || n; currentPassword = p;
+                currentUser = result.fullName || n; 
+                currentPassword = p;
+                
+                // NEU: Admin-Button Steuerung
+                // Wir prüfen, ob das Element existiert, und steuern die Sichtbarkeit anhand der Server-Antwort
+                const adminBtn = $('nav-admin-dashboard'); 
+                if (adminBtn) {
+                    if (result.isAdmin) {
+                        adminBtn.classList.remove('hidden');
+                    } else {
+                        adminBtn.classList.add('hidden');
+                    }
+                }
+
                 $('login-view').classList.add('hidden');
                 $('version-display').classList.add('hidden'); 
                 $('main-view').classList.remove('hidden');
                 showSection('start');
-            } else showMessage(result.error);
-        } catch (e) { showMessage("Fehler. Lade die Seite nochmal neu!"); } 
-        finally { $('auth-loader').classList.add('hidden'); }
+            } else {
+                showMessage(result.error);
+            }
+        } catch (e) { 
+            showMessage("Fehler. Lade die Seite nochmal neu!"); 
+        } finally { 
+            $('auth-loader').classList.add('hidden'); 
+        }
     }
 
     async function register() {
@@ -1619,6 +1655,38 @@
     
         // Karte sichtbar machen
         $('player-card-container').classList.remove('hidden');
+    }
+
+    async function adminTriggerApi() {
+        const statusDiv = $('admin-api-status');
+        const btn = $('btn-admin-api');
+        
+        btn.disabled = true;
+        statusDiv.style.color = 'blue';
+        statusDiv.innerText = 'API-Update wird ausgeführt. Bitte warten...';
+
+        try {
+            // Wir nutzen hier deinen bestehenden fetch-Weg anstelle von google.script.run
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'updateApi', name: currentUser, password: currentPassword }) 
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                statusDiv.style.color = 'green';
+                statusDiv.innerText = 'API erfolgreich aktualisiert!';
+                setTimeout(() => { statusDiv.innerText = ''; }, 3000);
+            } else {
+                statusDiv.style.color = 'red';
+                statusDiv.innerText = 'Fehler beim Update: ' + result.error;
+            }
+        } catch (e) {
+            statusDiv.style.color = 'red';
+            statusDiv.innerText = 'Netzwerkfehler beim Update.';
+        } finally {
+            btn.disabled = false;
+        }
     }
 </script>
 </body>
