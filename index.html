@@ -498,13 +498,49 @@
         <div id="admin-dashboard-section" class="view-section hidden">
             <h2>⚙️ Admin-Bereich</h2>
             
+            <!-- 1. API Update Modul -->
             <div class="admin-card" style="margin-top: 15px;">
                 <button id="btn-admin-api" onclick="adminTriggerApi()">API jetzt aktualisieren</button>
                 <div id="admin-api-status" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
             </div>
-            
-            <!-- Platzhalter für neue Funktionen -->
-            <div id="admin-modules"></div>
+
+            <!-- 2. USER-Verwaltung Modul -->
+            <div class="admin-card" style="margin-top: 15px;">
+                <button id="btn-admin-user-toggle" onclick="toggleAdminUserArea()" style="background-color: #F20F79;">👥 USER-Verwaltung</button>
+                
+                <div id="admin-user-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
+                    <label for="admin-user-select" style="font-weight: bold; display: block; margin-bottom: 5px;">User auswählen:</label>
+                    <select id="admin-user-select" class="bonus-input" onchange="loadAdminUserData()">
+                        <option value="">Lade User...</option>
+                    </select>
+
+                    <!-- Container für die Aktionen des ausgewählten Users -->
+                    <div id="admin-user-details" class="hidden" style="margin-top: 15px;">
+                        
+                        <!-- Modul 2a: Statistik -->
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6; margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">📊 Statistik</h4>
+                            <div id="admin-user-stats" style="font-size: 14px; line-height: 1.5;"></div>
+                        </div>
+
+                        <!-- Modul 2b: Passwort ändern -->
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6; margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">🔑 Passwort ändern</h4>
+                            <input type="text" inputmode="numeric" id="admin-new-pin" class="bonus-input" placeholder="Neue 4-stellige PIN" maxlength="4" style="margin-bottom: 10px; width: 100%;">
+                            <button onclick="adminChangePassword()" style="background-color: #0468BF;">PIN speichern</button>
+                            <div id="admin-pin-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
+                        </div>
+
+                        <!-- Modul 2c: Tipps verwalten (Vorbereitung) -->
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6;">
+                            <h4 style="margin: 0 0 10px 0; color: #333;">⚽️ Tipps nachtragen</h4>
+                            <p style="font-size: 0.85em; color: #666; margin-top: 0;">Ansicht und Bearbeitung der individuellen Spielertipps.</p>
+                            <button id="btn-admin-tipps" onclick="alert('Das Tipp-Modul wird im nächsten System-Update aktiviert.')" style="background-color: #F28907;">Tipps verwalten</button>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="bonus-section" class="view-section hidden">
@@ -634,7 +670,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.49</div>
+<div id="version-display" class="version-number">v1.50</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -1685,6 +1721,108 @@
         } catch (e) {
             statusDiv.style.color = 'red';
             statusDiv.innerText = 'Netzwerkfehler beim Update.';
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Globale Variable für die Admin-Ansicht
+    let adminAllUsers = [];
+
+    // Blendet die User-Verwaltung ein/aus und lädt die User-Liste vom Server
+    async function toggleAdminUserArea() {
+        const area = $('admin-user-area');
+        area.classList.toggle('hidden');
+        
+        // Nur laden, wenn der Bereich geöffnet wird und die Liste noch leer ist
+        if (!area.classList.contains('hidden') && adminAllUsers.length === 0) {
+            const select = $('admin-user-select');
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getAdminUsers', name: currentUser, password: currentPassword }) });
+                const result = await res.json();
+                
+                if (result.success) {
+                    adminAllUsers = result.users.sort((a, b) => a.localeCompare(b)); // Alphabetisch sortieren
+                    select.innerHTML = '<option value="">-- Bitte User wählen --</option>';
+                    adminAllUsers.forEach(u => {
+                        select.innerHTML += `<option value="${u}">${u}</option>`;
+                    });
+                } else {
+                    select.innerHTML = `<option value="">Fehler: ${result.error}</option>`;
+                }
+            } catch (e) {
+                select.innerHTML = `<option value="">Netzwerkfehler beim Laden.</option>`;
+            }
+        }
+    }
+
+    // Wird aufgerufen, sobald im Dropdown ein neuer User ausgewählt wird
+    function loadAdminUserData() {
+        const selectedUser = $('admin-user-select').value;
+        const details = $('admin-user-details');
+        
+        if (!selectedUser) {
+            details.classList.add('hidden');
+            return;
+        }
+        
+        details.classList.remove('hidden');
+        $('admin-pin-status').innerText = "";
+        $('admin-new-pin').value = "";
+        
+        // Statistik lokal aus den bereits geladenen Ranking-Daten extrahieren (sehr performant)
+        const userStat = globalRankingData.find(u => u.name === selectedUser);
+        const statsDiv = $('admin-user-stats');
+        
+        if (userStat) {
+            let form = userStat.letzteSpiele && userStat.letzteSpiele.length > 0 ? userStat.letzteSpiele.join(' | ') : 'Keine';
+            statsDiv.innerHTML = `
+                <strong>Klasse/Team:</strong> ${userStat.klasse || 'Keine Angabe'}<br>
+                <strong>Aktuelle Punkte:</strong> ${userStat.punkte}<br>
+                <strong>Form (letzte Spiele):</strong> ${form}
+            `;
+        } else {
+            statsDiv.innerHTML = "<em>User hat noch keine aktiven Statistikdaten im Ranking.</em>";
+        }
+    }
+
+    // Sendet die neue PIN an das Backend
+    async function adminChangePassword() {
+        const selectedUser = $('admin-user-select').value;
+        const newPin = $('admin-new-pin').value.trim();
+        const status = $('admin-pin-status');
+        const btn = document.querySelector('#admin-user-details button'); // Sperrt den Button
+        
+        // Validierung: PIN muss exakt 4 Ziffern lang sein
+        if (!selectedUser || newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+            status.style.color = "#F20F79";
+            status.innerText = "Bitte eine gültige 4-stellige PIN (nur Zahlen) eingeben.";
+            return;
+        }
+        
+        status.style.color = "#0468BF";
+        status.innerText = "Speichere neue PIN...";
+        btn.disabled = true;
+        
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'adminChangePin', name: currentUser, password: currentPassword, targetUser: selectedUser, newPin: newPin }) 
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                status.style.color = "green";
+                status.innerText = "PIN erfolgreich geändert!";
+                $('admin-new-pin').value = "";
+                setTimeout(() => { status.innerText = ''; }, 4000);
+            } else {
+                status.style.color = "#F20F79";
+                status.innerText = result.error;
+            }
+        } catch (e) {
+            status.style.color = "#F20F79";
+            status.innerText = "Netzwerkfehler.";
         } finally {
             btn.disabled = false;
         }
