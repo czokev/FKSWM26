@@ -56,6 +56,7 @@
         .btn-ranking { background-color: #cdde10; color: #333; }
         .btn-profil  { background-color: #F20F79; color: white; }
         .btn-rules   { background-color: #45a2a462; color: #333; }
+        .btn-admin   { background-color: #c2dada62; color: #333; }
         
         .active-btn { outline: 3px solid #333; outline-offset: 2px; }
 
@@ -480,7 +481,7 @@
             <button id="nav-dashboard" class="nav-btn btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
             <button id="nav-profil" class="nav-btn btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
             <button id="nav-regeln" class="nav-btn btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
-            <button id="nav-admin-dashboard" class="nav-btn hidden" onclick="showSection('admin-dashboard')">Admin</button>
+            <button id="nav-admin-dashboard" class="nav-btn btn-full btn-admin hidden" onclick="showSection('admin-dashboard')">⚙️ Admin-Bereich</button>
         </div>
         
         <div id="start-section" class="view-section hidden">
@@ -495,15 +496,15 @@
         </div>
 
         <div id="admin-dashboard-section" class="view-section hidden">
-            <h2>Admin-Bereich</h2>
-            <hr>
+            <h2>⚙️ Admin-Bereich</h2>
             
-            <div class="admin-card">
-                <h3>Spieldaten synchronisieren</h3>
-                <p>Holt die neuesten Ergebnisse und Spiele sofort von der API ab.</p>
+            <div class="admin-card" style="margin-top: 15px;">
                 <button id="btn-admin-api" onclick="adminTriggerApi()">API jetzt aktualisieren</button>
-                <div id="admin-api-status" style="margin-top: 10px; font-weight: bold;"></div>
+                <div id="admin-api-status" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
             </div>
+            
+            <!-- Platzhalter für neue Funktionen -->
+            <div id="admin-modules"></div>
         </div>
 
         <div id="bonus-section" class="view-section hidden">
