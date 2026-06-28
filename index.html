@@ -56,7 +56,7 @@
         .btn-ranking { background-color: #cdde10; color: #333; }
         .btn-profil  { background-color: #F20F79; color: white; }
         .btn-rules   { background-color: #45a2a462; color: #333; }
-        .btn-admin   { background-color: #c2dada62; color: #333; }
+        .btn-admin   { background-color: #242f2fd5; color: #f3f3f3; }
         
         .active-btn { outline: 3px solid #333; outline-offset: 2px; }
 
@@ -384,6 +384,37 @@
             margin: 5px 0;
             font-weight: 500;
         }
+
+        #btn-admin-api {
+            width: 60%;
+            margin: 0 auto;
+            display: block;
+            color: #ffdef2; /* Die Schriftfarbe */
+            background-color: #242f2fd5 !important; /* NEU: Erzwingt die Hintergrundfarbe (hier Blau) */
+        }
+
+        #btn-admin-user-toggle {
+            width: 60%;
+            margin: 0 auto;
+            display: block;
+            color: #e2ecff; /* Die Schriftfarbe */
+            background-color: #242f2fd5 !important; /* NEU: Erzwingt die Hintergrundfarbe (hier Blau) */
+        }
+
+        #btn-admin-bonus-toggle {
+            width: 60%;
+            margin: 0 auto;
+            display: block;
+            color: hsl(29, 100%, 94%); /* Die Schriftfarbe */
+            background-color: #242f2fd5 !important; /* NEU: Erzwingt die Hintergrundfarbe (hier Blau) */
+        }
+
+        /* Admin-Button gezielt schmaler machen */
+        #nav-admin-dashboard {
+            width: 80% !important;
+            margin: 0 auto 10px auto !important; /* 0 oben, auto links/rechts, 10px unten */
+            display: block !important;
+        }
     </style>
 
     <script>
@@ -481,7 +512,7 @@
             <button id="nav-dashboard" class="nav-btn btn-half btn-ranking" onclick="showSection('dashboard')">🏆 Ranking</button>
             <button id="nav-profil" class="nav-btn btn-half btn-profil" onclick="showSection('profil')">🚀 Statistik</button>
             <button id="nav-regeln" class="nav-btn btn-full btn-rules" onclick="showSection('regeln')">❗️ Wichtige Infos</button>
-            <button id="nav-admin-dashboard" class="nav-btn btn-full btn-admin hidden" onclick="showSection('admin-dashboard')">⚙️ Admin-Bereich</button>
+            <button id="nav-admin-dashboard" class="nav-btn btn-admin hidden" onclick="showSection('admin-dashboard')">⚙️ Admin-Bereich</button>
         </div>
         
         <div id="start-section" class="view-section hidden">
@@ -496,48 +527,46 @@
         </div>
 
         <div id="admin-dashboard-section" class="view-section hidden">
-            <h2>⚙️ Admin-Bereich</h2>
             
             <!-- 1. API Update Modul -->
             <div class="admin-card" style="margin-top: 15px;">
-                <button id="btn-admin-api" onclick="adminTriggerApi()">API jetzt aktualisieren</button>
+                <button id="btn-admin-api" onclick="adminTriggerApi()" style="background-color: #c2dada62;" >API aktualisieren</button>
                 <div id="admin-api-status" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
             </div>
 
             <!-- 2. USER-Verwaltung Modul -->
-            <div class="admin-card" style="margin-top: 15px;">
-                <button id="btn-admin-user-toggle" onclick="toggleAdminUserArea()" style="background-color: #F20F79;">👥 USER-Verwaltung</button>
-                
-                <div id="admin-user-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
-                    <label for="admin-user-select" style="font-weight: bold; display: block; margin-bottom: 5px;">User auswählen:</label>
-                    <select id="admin-user-select" class="bonus-input" onchange="loadAdminUserData()">
-                        <option value="">Lade User...</option>
-                    </select>
-
-                    <!-- Container für die Aktionen des ausgewählten Users -->
-                    <div id="admin-user-details" class="hidden" style="margin-top: 15px;">
+                    <div class="admin-card" style="margin-top: 15px;">
+                        <button id="btn-admin-user-toggle" onclick="toggleAdminUserArea()" style="background-color: #c2dada62;">User-Verwaltung</button>
                         
-                        <!-- Modul 2a: Statistik -->
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6; margin-bottom: 15px;">
-                            <h4 style="margin: 0 0 10px 0; color: #333;">📊 Statistik</h4>
-                            <div id="admin-user-stats" style="font-size: 14px; line-height: 1.5;"></div>
-                        </div>
+                        <div id="admin-user-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
+                            <label for="admin-user-select" style="font-weight: bold; display: block; margin-bottom: 5px;">User auswählen:</label>
+                            <select id="admin-user-select" class="bonus-input" onchange="loadAdminUserData()">
+                                <option value="">Lade User...</option>
+                            </select>
 
-                        <!-- Modul 2b: Passwort ändern -->
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6; margin-bottom: 15px;">
+                            <!-- Container für die Aktionen des ausgewählten Users -->
+                            <div id="admin-user-details" class="hidden" style="margin-top: 15px;">
+                        
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6;">
                             <h4 style="margin: 0 0 10px 0; color: #333;">🔑 Passwort ändern</h4>
                             <input type="text" inputmode="numeric" id="admin-new-pin" class="bonus-input" placeholder="Neue 4-stellige PIN" maxlength="4" style="margin-bottom: 10px; width: 100%;">
                             <button onclick="adminChangePassword()" style="background-color: #0468BF;">PIN speichern</button>
                             <div id="admin-pin-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
                         </div>
-
-                        <!-- Modul 2c: Tipps verwalten (Vorbereitung) -->
-                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6;">
-                            <h4 style="margin: 0 0 10px 0; color: #333;">⚽️ Tipps nachtragen</h4>
-                            <p style="font-size: 0.85em; color: #666; margin-top: 0;">Ansicht und Bearbeitung der individuellen Spielertipps.</p>
-                            <button id="btn-admin-tipps" onclick="alert('Das Tipp-Modul wird im nächsten System-Update aktiviert.')" style="background-color: #F28907;">Tipps verwalten</button>
-                        </div>
                         
+                    </div>
+                </div>
+
+                <!-- 3. Modul: Bonusfragen auswerten -->
+                <div class="admin-card" style="margin-top: 15px;">
+                    <button id="btn-admin-bonus-toggle" onclick="adminLoadBonusfragen()" style="background-color: #F28907;">Bonusfragen auswerten</button>
+                    
+                    <div id="admin-bonus-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
+                                                
+                        <div id="admin-bonus-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+                        
+                        <button id="btn-admin-save-bonus" onclick="adminSaveBonusErgebnisse()" style="background-color: #0468BF;">Ergebnisse speichern & werten</button>
+                        <div id="admin-bonus-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
                     </div>
                 </div>
             </div>
@@ -670,7 +699,7 @@
     </div>
 </div>
 
-<div id="version-display" class="version-number">v1.50</div>
+<div id="version-display" class="version-number">v1.51</div>
 
 <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyuxo4RcEJfshivmNgZDkDxqlGmYI_EpvQgke3tTxVR2kpaylaB3g5nUvSzYhtJqnsn/exec";
@@ -1700,6 +1729,7 @@
         
         btn.disabled = true;
         statusDiv.style.color = 'blue';
+        statusDiv.style.fontSize = '0.8em';
         statusDiv.innerText = 'API-Update wird ausgeführt. Bitte warten...';
 
         try {
@@ -1712,14 +1742,17 @@
             
             if (result.success) {
                 statusDiv.style.color = 'green';
+                statusDiv.style.fontSize = '0.8em';
                 statusDiv.innerText = 'API erfolgreich aktualisiert!';
                 setTimeout(() => { statusDiv.innerText = ''; }, 3000);
             } else {
                 statusDiv.style.color = 'red';
+                statusDiv.style.fontSize = '0.8em';
                 statusDiv.innerText = 'Fehler beim Update: ' + result.error;
             }
         } catch (e) {
             statusDiv.style.color = 'red';
+            statusDiv.style.fontSize = '0.8em';
             statusDiv.innerText = 'Netzwerkfehler beim Update.';
         } finally {
             btn.disabled = false;
@@ -1757,6 +1790,7 @@
     }
 
     // Wird aufgerufen, sobald im Dropdown ein neuer User ausgewählt wird
+    // Wird aufgerufen, sobald im Dropdown ein neuer User ausgewählt wird
     function loadAdminUserData() {
         const selectedUser = $('admin-user-select').value;
         const details = $('admin-user-details');
@@ -1769,21 +1803,6 @@
         details.classList.remove('hidden');
         $('admin-pin-status').innerText = "";
         $('admin-new-pin').value = "";
-        
-        // Statistik lokal aus den bereits geladenen Ranking-Daten extrahieren (sehr performant)
-        const userStat = globalRankingData.find(u => u.name === selectedUser);
-        const statsDiv = $('admin-user-stats');
-        
-        if (userStat) {
-            let form = userStat.letzteSpiele && userStat.letzteSpiele.length > 0 ? userStat.letzteSpiele.join(' | ') : 'Keine';
-            statsDiv.innerHTML = `
-                <strong>Klasse/Team:</strong> ${userStat.klasse || 'Keine Angabe'}<br>
-                <strong>Aktuelle Punkte:</strong> ${userStat.punkte}<br>
-                <strong>Form (letzte Spiele):</strong> ${form}
-            `;
-        } else {
-            statsDiv.innerHTML = "<em>User hat noch keine aktiven Statistikdaten im Ranking.</em>";
-        }
     }
 
     // Sendet die neue PIN an das Backend
@@ -1822,6 +1841,97 @@
             }
         } catch (e) {
             status.style.color = "#F20F79";
+            status.innerText = "Netzwerkfehler.";
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    // Lädt alle Bonusfragen und blendet den Auswertungsbereich ein
+    async function adminLoadBonusfragen() {
+        const area = $('admin-bonus-area');
+        const list = $('admin-bonus-list');
+        const btn = $('btn-admin-bonus-toggle');
+        const status = $('admin-bonus-status');
+        
+        // Schließt den Bereich, falls er bereits geöffnet ist
+        if (!area.classList.contains('hidden')) {
+            area.classList.add('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Lade Bonusfragen...";
+        status.innerText = "";
+
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'getAdminBonusfragen', name: currentUser, password: currentPassword }) 
+            });
+            const result = await res.json();
+
+            if (result.success && result.fragen) {
+                area.classList.remove('hidden');
+                list.innerHTML = '';
+
+                // Generiert für jede Frage ein Eingabefeld
+                result.fragen.forEach(f => {
+                    list.innerHTML += `
+                        <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                            <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; color: #333;">${f.frage}</div>
+                            <input type="text" id="admin_bonus_erg_${f.id}" value="${f.echtesErg || ''}" placeholder="Offizielles Ergebnis eintragen..." style="width: 100%; padding: 8px; margin: 0; box-sizing: border-box; text-align: left; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                        </div>
+                    `;
+                });
+            } else {
+                alert("Fehler beim Laden: " + (result.error || "Keine Fragen gefunden."));
+            }
+        } catch (e) {
+            alert("Netzwerkfehler beim Laden der Bonusfragen.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Bonusfragen auswerten";
+        }
+    }
+
+    // Sendet die eingetragenen Ergebnisse an das Backend
+    async function adminSaveBonusErgebnisse() {
+        const status = $('admin-bonus-status');
+        const btn = $('btn-admin-save-bonus');
+        
+        status.style.color = "#0468BF";
+        statusDiv.style.fontSize = '0.8em';
+        status.innerText = "Speichere Ergebnisse...";
+        btn.disabled = true;
+
+        let ergebnisse = [];
+        // Liest alle Felder aus, die mit 'admin_bonus_erg_' beginnen
+        document.querySelectorAll('input[id^="admin_bonus_erg_"]').forEach(input => {
+            const id = input.id.split('_')[3];
+            ergebnisse.push({ id: id, erg: input.value.trim() });
+        });
+
+        try {
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'saveAdminBonusErgebnisse', name: currentUser, password: currentPassword, ergebnisse: ergebnisse }) 
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                status.style.color = "green";
+                statusDiv.style.fontSize = '0.8em';
+                status.innerText = "Ergebnisse erfolgreich gespeichert! Punkte wurden aktualisiert.";
+                setTimeout(() => { status.innerText = ''; }, 5000);
+            } else {
+                status.style.color = "#F20F79";
+                statusDiv.style.fontSize = '0.8em';
+                status.innerText = result.error || "Fehler beim Speichern.";
+            }
+        } catch (e) {
+            status.style.color = "#F20F79";
+            statusDiv.style.fontSize = '0.8em';
             status.innerText = "Netzwerkfehler.";
         } finally {
             btn.disabled = false;
