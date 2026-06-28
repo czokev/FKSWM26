@@ -386,7 +386,7 @@
         }
 
         #btn-admin-api {
-            width: 60%;
+            width: 40%;
             margin: 0 auto;
             display: block;
             color: #ffdef2; /* Die Schriftfarbe */
@@ -405,7 +405,7 @@
             width: 60%;
             margin: 0 auto;
             display: block;
-            color: hsl(29, 100%, 94%); /* Die Schriftfarbe */
+            color: #e2ecff; /* Die Schriftfarbe */
             background-color: #242f2fd5 !important; /* NEU: Erzwingt die Hintergrundfarbe (hier Blau) */
         }
 
@@ -527,48 +527,41 @@
         </div>
 
         <div id="admin-dashboard-section" class="view-section hidden">
-            
-            <!-- 1. API Update Modul -->
+            <h2>Admin-Bereich</h2>
+
             <div class="admin-card" style="margin-top: 15px;">
-                <button id="btn-admin-api" onclick="adminTriggerApi()" style="background-color: #c2dada62;" >API aktualisieren</button>
-                <div id="admin-api-status" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
-            </div>
+                <button id="btn-admin-user-toggle" onclick="toggleAdminUserArea()" style="background-color: #c2dada62;">User-Verwaltung</button>
+                
+                <div id="admin-user-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
+                    <label for="admin-user-select" style="font-weight: bold; display: block; margin-bottom: 5px;">User auswählen:</label>
+                    <select id="admin-user-select" class="bonus-input" onchange="loadAdminUserData()">
+                        <option value="">Lade User...</option>
+                    </select>
 
-            <!-- 2. USER-Verwaltung Modul -->
-                    <div class="admin-card" style="margin-top: 15px;">
-                        <button id="btn-admin-user-toggle" onclick="toggleAdminUserArea()" style="background-color: #c2dada62;">User-Verwaltung</button>
-                        
-                        <div id="admin-user-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
-                            <label for="admin-user-select" style="font-weight: bold; display: block; margin-bottom: 5px;">User auswählen:</label>
-                            <select id="admin-user-select" class="bonus-input" onchange="loadAdminUserData()">
-                                <option value="">Lade User...</option>
-                            </select>
-
-                            <!-- Container für die Aktionen des ausgewählten Users -->
-                            <div id="admin-user-details" class="hidden" style="margin-top: 15px;">
-                        
+                    <div id="admin-user-details" class="hidden" style="margin-top: 15px;">
                         <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border: 1px solid #dee2e6;">
                             <h4 style="margin: 0 0 10px 0; color: #333;">🔑 Passwort ändern</h4>
                             <input type="text" inputmode="numeric" id="admin-new-pin" class="bonus-input" placeholder="Neue 4-stellige PIN" maxlength="4" style="margin-bottom: 10px; width: 100%;">
                             <button onclick="adminChangePassword()" style="background-color: #0468BF;">PIN speichern</button>
                             <div id="admin-pin-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
                         </div>
-                        
                     </div>
                 </div>
+            </div>
 
-                <!-- 3. Modul: Bonusfragen auswerten -->
-                <div class="admin-card" style="margin-top: 15px;">
-                    <button id="btn-admin-bonus-toggle" onclick="adminLoadBonusfragen()" style="background-color: #F28907;">Bonusfragen auswerten</button>
-                    
-                    <div id="admin-bonus-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
-                                                
-                        <div id="admin-bonus-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
-                        
-                        <button id="btn-admin-save-bonus" onclick="adminSaveBonusErgebnisse()" style="background-color: #0468BF;">Ergebnisse speichern & werten</button>
-                        <div id="admin-bonus-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
-                    </div>
+            <div class="admin-card" style="margin-top: 15px;">
+                <button id="btn-admin-bonus-toggle" onclick="adminLoadBonusfragen()" style="background-color: #F28907;">Bonusfragen auswerten</button>
+                
+                <div id="admin-bonus-area" class="hidden" style="margin-top: 15px; border-top: 1px solid #ccc; padding-top: 15px;">
+                    <div id="admin-bonus-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+                    <button id="btn-admin-save-bonus" onclick="adminSaveBonusErgebnisse()" style="background-color: #0468BF;">Ergebnisse speichern & werten</button>
+                    <div id="admin-bonus-status" style="font-weight:bold; text-align:center; margin-top:5px;"></div>
                 </div>
+            </div>
+
+            <div class="admin-card" style="margin-top: 15px;">
+                <button id="btn-admin-api" onclick="adminTriggerApi()" style="background-color: #c2dada62;">API aktualisieren</button>
+                <div id="admin-api-status" style="margin-top: 10px; font-weight: bold; text-align: center;"></div>
             </div>
         </div>
 
