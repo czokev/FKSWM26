@@ -413,7 +413,7 @@
         #nav-admin-dashboard {
             width: 80% !important;
             margin: 0 auto 10px auto !important; /* 0 oben, auto links/rechts, 10px unten */
-            display: block !important;
+            display: block;
         }
     </style>
 
@@ -838,15 +838,18 @@
             const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'login', name: n, password: p }) });
             const result = await res.json();
             
-            if (result.success) {
+                if (result.success) {
                 currentUser = result.fullName || n; 
                 currentPassword = p;
                 
-                // NEU: Admin-Button Steuerung
-                // Wir prüfen, ob das Element existiert, und steuern die Sichtbarkeit anhand der Server-Antwort
-                const adminBtn = $('nav-admin-dashboard'); 
+                // 1. Admin-Status sicher ermitteln und lokal speichern
+                const isAdminUser = (result.isAdmin === true);
+                localStorage.setItem('is_admin_frida', isAdminUser ? 'true' : 'false');
+                
+                // 2. Button DIREKT nach dem Klick auf Login aktualisieren
+                const adminBtn = $('nav-admin-dashboard');
                 if (adminBtn) {
-                    if (result.isAdmin) {
+                    if (isAdminUser) {
                         adminBtn.classList.remove('hidden');
                     } else {
                         adminBtn.classList.add('hidden');
@@ -959,6 +962,9 @@
     }
 
     async function loadData(context) {
+        // --- SICHERHEITS-CHECK: Ist der User Admin? ---
+        verifyAdminStatus();
+
         const loader = $('loader-' + context);
         if (loader) loader.classList.remove('hidden');
     
@@ -1928,6 +1934,30 @@
             status.innerText = "Netzwerkfehler.";
         } finally {
             btn.disabled = false;
+        }
+    }
+
+    // Prüft bei jedem Seitenladen, ob der User Admin ist
+    async function verifyAdminStatus() {
+        const adminBtn = $('nav-admin-dashboard');
+        if (!adminBtn || !currentUser) return;
+
+        try {
+            // Wir fragen das Backend kurz ab
+            const res = await fetch(API_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'checkAdmin', name: currentUser, password: currentPassword }) 
+            });
+            const result = await res.json();
+            
+            if (result.isAdmin) {
+                adminBtn.classList.remove('hidden');
+            } else {
+                adminBtn.classList.add('hidden');
+            }
+        } catch (e) {
+            // Bei Fehler sicherheitshalber ausblenden
+            adminBtn.classList.add('hidden');
         }
     }
 </script>
