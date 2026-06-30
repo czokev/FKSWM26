@@ -1543,7 +1543,7 @@
             let badge = (isL && hasFinalResult) ? `<div class="form-circle badge-top-right points-${earnedPts==3?'3':(earnedPts==1?'1':'0')}">${earnedPts}</div>` : "";
             let res = "";
             if (hasFinalResult) {
-                res = `<div class="game-result-box final">Endstand: ${s.ergH}:${s.ergA}</div>`;
+                res = `<div class="game-result-box final">Ergebnis: ${s.ergH}:${s.ergA}</div>`;
             } else if (isLive) {
                 let lh = s.liveH !== "" ? s.liveH : "0";
                 let la = s.liveA !== "" ? s.liveA : "0";
